@@ -16,7 +16,7 @@ def process_season_data(input_filepath, output_filepath):
     df = pd.read_csv(input_filepath)
 
     COLS = [
-        ['player_id', 'season', 'height', 'weight', 'age'],
+        ['player_id', 'season', 'age', 'height', 'weight'],
         ['{}_{}'.format(*x) for x in
          itertools.product(['pct_fga', 'fg_pct'],
                            ['00_03', '03_10', '10_16', '16_xx'])],

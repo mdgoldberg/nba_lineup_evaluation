@@ -1,0 +1,29 @@
+\begin{thebibliography}{1}
+
+\bibitem{englemann_2015}
+Jeremias Englemann.
+\newblock Youtube, Nov 2015.
+
+\bibitem{maymin_2012}
+Allan Maymin, Philip Maymin, and Eugene Shen.
+\newblock Nba chemistry: Positive and negative synergies in basketball.
+\newblock {\em Sloan Sports Analytics Conference}, Mar 2012.
+
+\bibitem{rosenbaum_2004}
+Dan~T. Rosenbaum.
+\newblock Picking the difference makers for the all-nba teams, Apr 2004.
+
+\bibitem{rousseeuw_1987}
+Peter~J. Rousseeuw.
+\newblock Silhouettes: A graphical aid to the interpretation and validation of
+  cluster analysis.
+\newblock {\em Journal of Computational and Applied Mathematics}, 20:53–65,
+  1987.
+
+\bibitem{sill_2010}
+Joseph Sill.
+\newblock Improved nba adjusted /- using regularization and out-of-sample
+  testing.
+\newblock {\em Sloan Sports Analytics Conference}, Mar 2010.
+
+\end{thebibliography}

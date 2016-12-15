@@ -1,0 +1,132 @@
+\title{CS91r Final Submission}
+\author{Matt Goldberg}
+\date{\today}
+
+\documentclass[12pt]{article}
+
+\usepackage[margin=1.0in]{geometry}
+\usepackage{setspace}
+\usepackage{enumerate}
+\usepackage{amsmath, amssymb, amsthm, mathtools}
+
+% Statistics
+\newcommand{\Prob}[1]{P\left( #1 \right)}
+\newcommand{\PDF}[1]{f\left( #1 \right)}
+\newcommand{\E}[1]{\mathbb{E}\left[ #1 \right]}
+\newcommand{\var}[1]{\mathrm{Var}\left[ #1 \right]}
+\newcommand{\cov}[2]{\mathrm{Cov}\left[ #1 , #2 \right]}
+\newcommand{\iid}{\textrm{ i.i.d.}}
+\newcommand{\simiid}{\overset\iid\sim}
+% Distributions
+\newcommand{\Norm}[2]{\mathrm{\mathcal{N}\left(#1, #2\right)}}
+\newcommand{\Bin}[2]{\mathrm{Bin\left(#1, #2\right)}}
+\newcommand{\Bern}[1]{\mathrm{Bern\left( #1 \right)}}
+\newcommand{\Pois}[1]{\mathrm{Pois\left( #1 \right)}}
+\newcommand{\Expo}[1]{\mathrm{Expo\left( #1 \right)}}
+\newcommand{\GammaDist}[2]{\mathrm{Gamma\left( #1, #2 \right)}}
+% Sets
+\newcommand{\R}{\mathbb{Z}} % reals
+\newcommand{\Z}{\mathbb{Z}} % integers
+\newcommand{\N}{\mathbb{N}} % natural numbers
+\newcommand{\F}[1]{\mathcal{F}_{#1}}
+% Other Math
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\newcommand{\myexp}[1]{\exp\left[ #1 \right]}
+\newcommand{\FirstDeriv}[1]{\frac{\partial}{\partial #1}}
+\newcommand{\SecondDeriv}[1]{\frac{\partial^2}{\partial (#1)^2}}
+% if/otherwise for cases environment
+\newcommand{\myif}{& \textrm{if }}
+\newcommand{\myotherwise}{& \textrm{otherwise}}
+
+
+\begin{document}
+\maketitle
+
+\doublespacing
+
+\section{Introduction} \label{intro}
+
+Much of the work being done in the world of NBA analytics attempts to answer
+the problem of how an individual player should be valued. In particular, a
+common insight is that basketball is inherently a team sport, and the players
+with whom and against whom one plays can significantly alter one's traditional
+box score statistics. Therefore, a major problem in player evaluation is
+teasing apart an individual player's contribution to his team without falsely
+attributing contributions to poor players who merely play with great players
+(or against even worse players), and without overlooking great players on
+mediocre teams. The major breakthrough in player evaluation that addressed
+these issues was Adjusted Plus/Minus\cite{rosenbaum_2004}, which controls for a
+player's teammates and opponents to determine what effect a player has on point
+differential, independent of who else is on the court. Since this framework was
+introduced, many others have expanded on it and adopted the mindset of breaking
+down plus/minus \cite{englemann_2015}\cite{sill_2010}\cite{myers_2011}.
+
+However, NBA general managers and coaches do not make decisions about a player
+based on his value in a vacuum; rather, they make decisions based on a player's
+value in the context of the team they already have. Notably, chemistry is often
+critical to success in the NBA, so there is a strong incentive to ensure that
+players fit well together\cite{schrage_2014}. Therefore, my goal is to build a
+principled model that, at its core, predicts the point differential between a
+given two lineups, based on the talent and play style of the players involved.
+Using this model, a coach would be able to determine how player's specific
+skillset would make an impact given their current roster. Moreover, a coach
+could determine which players on a roster would complement each other well and
+should play a significant portion of their minutes together.
+
+\section{Background} \label{background}
+
+\begin{itemize}
+	\item Explain Adjusted Plus/Minus and RAPM
+	\item Clustering is very common - "new positions"
+	\item Explain and compare/contrast \cite{maymin_2012}
+	\item Explain idea of regression with RAPM and play styles
+\end{itemize}
+
+\section{Clustering Approach} \label{clustering}
+
+\subsection{Feature Selection} \label{features}
+
+* Explain that we want style as much as possible, without taking into account
+minutes, actual contribution, etc.
+* Go over different areas of play style and stats to represent each
+
+\subsection{Clustering Algorithms} \label{algos}
+
+* Go over different clustering algorithms briefly
+* Use of silhouette score for evaluation \cite{rousseeuw_1987}
+
+KMeans
+
+GMM
+
+PCA + KMeans
+
+PCA + GMM
+
+\section{Results} \label{results}
+
+* See notebook
+* Visualizations (?)
+
+\section{Future Work} \label{future}
+
+* Regression
+\begin{itemize}
+	\item Given such a system, possible insights and analysis: Section \ref{future}
+		\subitem What is each team's best lineup? Especially relevant when starters
+		are resting
+		\subitem Are certain types of players more valuable, or perhaps more
+		replaceable, than others?
+		\subitem Which coaches are the best at playing players that complement each
+		other?
+		\subitem Given a roster and a possible acquisition, how valuable is the
+		player in question? How well do they fit?
+		\subitem Are there any notable mutually-beneficial trades that could happen?
+		\subitem How have these effects changed over time?
+\end{itemize}
+
+\bibliographystyle{plain}
+\bibliography{sources}
+
+\end{document}
