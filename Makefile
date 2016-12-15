@@ -1,4 +1,4 @@
-.PHONY: clean data lint requirements
+.PHONY: clean lint requirements fetch_data process_data data
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -9,9 +9,10 @@ PYTHON_INTERPRETER = python
 IS_ANACONDA=$(shell python -c "import sys;t=str('anaconda' in sys.version.lower() or 'continuum' in sys.version.lower());sys.stdout.write(t)")
 
 # variables for the data rule
-START_YEAR = 2000
+START_YEAR = 2001
 END_YEAR = 2016
-OUT_PATH = data/raw/bkref_data_$(START_YEAR)_$(END_YEAR).csv
+RAW_PATH = data/raw/bkref_season_data_$(START_YEAR)_$(END_YEAR).csv
+INT_PATH = data/interim/bkref_season_data_$(START_YEAR)_$(END_YEAR).csv
 
 #################################################################################
 # COMMANDS                                                                      #
@@ -21,9 +22,18 @@ OUT_PATH = data/raw/bkref_data_$(START_YEAR)_$(END_YEAR).csv
 requirements: test_environment
 	pip install -r requirements.txt
 
-## Make Dataset
-data: requirements
-	$(PYTHON_INTERPRETER) src/data/fetch_raw_data.py $(OUT_PATH) $(START_YEAR) $(END_YEAR)
+## Make Raw Dataset
+fetch_data:
+	$(PYTHON_INTERPRETER) src/data/fetch_raw_season_data.py \
+		$(RAW_PATH) $(START_YEAR) $(END_YEAR)
+
+## Process Raw Dataset
+process_data:
+	$(PYTHON_INTERPRETER) src/data/process_season_data.py \
+		$(RAW_PATH) $(INT_PATH)
+
+## All Data Steps
+data: fetch_data process_data
 
 ## Delete all compiled Python files
 clean:
