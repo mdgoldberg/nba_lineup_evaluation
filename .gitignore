@@ -103,3 +103,10 @@ ENV/
 
 # exclude data from source control by default
 /data/
+
+# latex
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
