@@ -31,14 +31,17 @@ partd==0.3.6
 pathlib2==2.1.0
 pexpect==4.2.1
 pickleshare==0.7.4
+pluggy==0.4.0
 prompt-toolkit==1.0.9
 psutil==5.0.0
 ptyprocess==0.5.1
+py==1.4.32
 Pygments==2.1.3
 pyparsing==2.1.10
 pyquery==1.2.17
 python-dateutil==2.6.0
 pytz==2016.10
+requests==2.12.4
 s3fs==0.0.7
 s3transfer==0.1.9
 scikit-learn==0.18.1
@@ -50,11 +53,12 @@ singledispatch==3.4.0.3
 six==1.10.0
 sklearn==0.0
 sklearn-pandas==1.2.0
-## !! Could not determine repository location
 sportsref==0.7.10
 tblib==1.3.0
 toolz==0.8.2
 tornado==4.4.2
+tox==2.5.0
 traitlets==4.3.1
+virtualenv==15.1.0
 wcwidth==0.1.7
 zict==0.1.0
