@@ -59,6 +59,9 @@ def fetch_pbp_data_year(year):
 
 
 class PBPYearFetcher(luigi.Task):
+    """
+    TODO
+    """
 
     year = luigi.IntParameter()
 
@@ -66,7 +69,7 @@ class PBPYearFetcher(luigi.Task):
         path = os.path.join(
             DATA_DIR, 'raw', 'pbp', 'pbp_{}.csv'.format(self.year)
         )
-        os.makedirs(path)
+        os.makedirs(os.path.dirname(path))
         return luigi.LocalTarget(path)
 
     def run(self):
@@ -75,6 +78,9 @@ class PBPYearFetcher(luigi.Task):
 
 
 class PBPRangeFetcher(luigi.Task):
+    """
+    TODO
+    """
 
     start_year = luigi.IntParameter()
     end_year = luigi.IntParameter()
