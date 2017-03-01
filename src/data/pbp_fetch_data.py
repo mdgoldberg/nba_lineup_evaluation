@@ -66,6 +66,7 @@ class PBPYearFetcher(luigi.Task):
         path = os.path.join(
             DATA_DIR, 'raw', 'pbp', 'pbp_{}.csv'.format(self.year)
         )
+        os.makedirs(path)
         return luigi.LocalTarget(path)
 
     def run(self):
@@ -73,7 +74,7 @@ class PBPYearFetcher(luigi.Task):
         df.to_csv(self.output().path, index_label=False)
 
 
-class PBPCombiner(luigi.Task):
+class PBPRangeFetcher(luigi.Task):
 
     start_year = luigi.IntParameter()
     end_year = luigi.IntParameter()
@@ -83,15 +84,3 @@ class PBPCombiner(luigi.Task):
             PBPYearFetcher(yr)
             for yr in range(self.start_year, self.end_year+1)
         ]
-
-    def output(self):
-        path = os.path.join(
-            DATA_DIR, 'interim', 'pbp',
-            'pbp_{}_{}'.format(self.start_year, self.end_year)
-        )
-        return luigi.LocalTarget(path)
-
-    def run(self):
-        paths = [yr_pbp_target.path for yr_pbp_target in self.input()]
-        df = dd.read_csv(paths)
-        df.to_csv(self.output().path, index_label=False)
