@@ -51,8 +51,7 @@ def fetch_pbp_data_year(year):
     boxscore_ids = season.get_schedule().boxscore_id.values[:10]
     bsids_bag = db.from_sequence(boxscore_ids)
     dfs_bag = bsids_bag.map(process_boxscore_id)
-    with diagnostics.ProgressBar():
-        dfs = dfs_bag.compute()
+    dfs = dfs_bag.compute()
     df = pd.concat(dfs)
     df = nba.pbp.clean_features(df)
     return df
