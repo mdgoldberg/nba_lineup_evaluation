@@ -37,13 +37,12 @@ def process_boxscore_id(boxscore_id):
     bs = nba.BoxScore(boxscore_id)
     try:
         df = bs.pbp().query('quarter <= 4')
+        logger.info('Parsed {} play-by-play data'.format(boxscore_id))
+        return df
     except Exception as e:
         logger.exception('Exception encountered when scraping PBP data for {}'
                          .format(boxscore_id))
-        pass
-    logger.info('Parsed {} play-by-play data'.format(boxscore_id))
-
-    return df
+        return None
 
 
 def fetch_pbp_data_year(year):
@@ -52,7 +51,8 @@ def fetch_pbp_data_year(year):
     bsids_bag = db.from_sequence(boxscore_ids)
     dfs_bag = bsids_bag.map(process_boxscore_id)
     dfs = dfs_bag.compute()
-    df = pd.concat(dfs)
+    filt_dfs = filter(None, dfs)
+    df = pd.concat(filt_dfs)
     df = nba.pbp.clean_features(df)
     return df
 
