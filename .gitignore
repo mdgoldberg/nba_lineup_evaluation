@@ -110,3 +110,6 @@ ENV/
 *.blg
 *.fdb_latexmk
 *.fls
+
+# logs
+/logs/
