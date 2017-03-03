@@ -37,8 +37,8 @@ def process_boxscore_id(boxscore_id):
     bs = nba.BoxScore(boxscore_id)
     try:
         df = bs.pbp().query('quarter <= 4')
-        logger.info('Parsed {} play-by-play data'.format(boxscore_id))
         lineup_df = pd.concat((df, nba.pbp.get_sparse_lineups(df)), axis=1)
+        logger.info('Parsed {} play-by-play data'.format(boxscore_id))
         return lineup_df
     except Exception as e:
         logger.exception('Exception encountered when scraping PBP data for {}'
