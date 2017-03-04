@@ -52,7 +52,7 @@ def fetch_pbp_data_year(year):
     bsids_bag = db.from_sequence(boxscore_ids, npartitions=16)
     dfs_bag = bsids_bag.map(process_boxscore_id)
     dfs = dfs_bag.compute()
-    filt_dfs = filter(None, dfs)
+    filt_dfs = [df for df in dfs if df is not None]
     df = pd.concat(filt_dfs)
     df = nba.pbp.clean_features(df)
     return df
