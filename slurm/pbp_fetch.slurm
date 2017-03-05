@@ -5,7 +5,7 @@
 #SBATCH -n 16
 #SBATCH -N 1
 #SBATCH -t 0-10:00
-#SBATCH --mem-per-cpu 12000
+#SBATCH --mem-per-cpu 9500
 #SBATCH -o logs/pbp_fetch.out
 #SBATCH -e logs/pbp_fetch.err
 
@@ -14,4 +14,5 @@ module load git python/2.7.13-fasrc01
 
 source activate thesis
 
-PYTHONPATH='.' luigi --module src.data.pbp_fetch_data PBPRangeFetcher --start-year 2002 --end-year 2016 --local-scheduler
+luigid --logdir logs --background
+PYTHONPATH='.' luigi --module src.data.pbp_fetch_data PBPRangeFetcher --start-year 2002 --end-year 2016 --workers 4
