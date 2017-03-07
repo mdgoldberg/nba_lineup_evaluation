@@ -66,7 +66,7 @@ class PBPYearFetcher(luigi.Task):
 
     def output(self):
         path = os.path.join(
-            DATA_DIR, 'raw', 'pbp', 'pbp_{}.csv'.format(self.year)
+            DATA_DIR, 'raw', 'pbp_{}.csv'.format(self.year)
         )
         directory = os.path.dirname(path)
         if not os.path.exists(directory):
