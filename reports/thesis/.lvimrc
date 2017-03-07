@@ -1,1 +1,2 @@
-let &l:makeprg="cd ".g:localvimrc_script_dir_unresolved." && make"
+nnoremap <leader>c :w<CR>:Dispatch! inv compile<CR>
+nnoremap <leader>v :w<CR>:Dispatch! inv view<CR>
