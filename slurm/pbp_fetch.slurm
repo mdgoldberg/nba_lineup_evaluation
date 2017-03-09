@@ -2,10 +2,10 @@
 
 #SBATCH -p general
 #SBATCH -J pbp_fetch
-#SBATCH -n 16
+#SBATCH -n 32
 #SBATCH -N 1
-#SBATCH -t 0-10:00
-#SBATCH --mem-per-cpu 9500
+#SBATCH -t 0-06:00
+#SBATCH --mem-per-cpu 4000
 #SBATCH -o logs/pbp_fetch.out
 #SBATCH -e logs/pbp_fetch.err
 
