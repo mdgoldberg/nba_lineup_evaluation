@@ -51,8 +51,8 @@ def fetch_pbp_data_year(year):
     dfs = dfs_bag.compute()
     filt_dfs = [df for df in dfs if df is not None]
     df = pd.concat(filt_dfs)
-    df = nba.pbp.clean_features(df)
-    return df
+    clean_df = nba.pbp.clean_multigame_features(df)
+    return clean_df
 
 
 class PBPYearFetcher(luigi.Task):
