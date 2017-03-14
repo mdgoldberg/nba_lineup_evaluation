@@ -1,0 +1,17 @@
+#!/bin/bash
+
+#SBATCH -p general
+#SBATCH -J data_test
+#SBATCH -n 15
+#SBATCH -N 1
+#SBATCH -t 0-03:00
+#SBATCH --mem-per-cpu 2000
+#SBATCH -o logs/data_test.out
+#SBATCH -e logs/data_test.err
+
+source new-modules.sh
+module load git python/2.7.13-fasrc01
+
+source activate thesis
+
+python src/testing/data_test.py

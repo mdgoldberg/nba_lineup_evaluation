@@ -75,4 +75,7 @@ if __name__ == '__main__':
     p.close()
 
     all_summs = pd.concat(yr_summs)
-    all_summs.to_csv('data_test_summary.csv', index_label=False)
+    all_summs.to_csv(
+        os.path.join(DATA_DIR, 'testing', 'data_test_summary.csv'),
+        index_label=False
+    )
