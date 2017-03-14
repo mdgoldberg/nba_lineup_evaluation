@@ -4,8 +4,8 @@
 #SBATCH -J data_test
 #SBATCH -n 15
 #SBATCH -N 1
-#SBATCH -t 0-03:00
-#SBATCH --mem-per-cpu 2000
+#SBATCH -t 0-02:00
+#SBATCH --mem-per-cpu 7000
 #SBATCH -o logs/data_test.out
 #SBATCH -e logs/data_test.err
 
