@@ -75,7 +75,8 @@ def year_summaries(year):
     summ = year_df.groupby('boxscore_id').apply(summary)
     all_bsids = nba.Season(year).get_schedule().boxscore_id.values
     missing_bsids = set(all_bsids) - set(summ.index)
-    summ.ix[missing_bsids] = np.nan
+    for miss_bsid in missing_bsids:
+        summ.ix[miss_bsid] = np.nan
     return summ
 
 
