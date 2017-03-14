@@ -1,3 +1,4 @@
+import logging
 import multiprocessing as mp
 import os
 
@@ -13,6 +14,14 @@ dotenv.load_dotenv(dotenv_path)
 
 PROJ_DIR = os.environ['PROJ_DIR']  # from .env
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
+
+
+def get_logger():
+    logging.config.fileConfig(
+        os.path.join(PROJ_DIR, 'logging_config.ini')
+    )
+    logger = logging.getLogger()
+    return logger
 
 
 def calc_pm(df):
@@ -39,12 +48,13 @@ def summary(game_df):
     :param game_df: The PBP DataFrame for the boxscore to summarize.
     :returns: A dictionary of summary info about +/-
     """
+    logger = get_logger()
     pbp_pm = calc_pm(game_df)
     boxscore_id = game_df.boxscore_id.iloc[0]
-    print boxscore_id
     bs = nba.BoxScore(boxscore_id)
     bs_pm = bs.basic_stats().set_index('player_id').plus_minus
     diff = (bs_pm - pbp_pm).dropna()
+    logger.info('Finished summarizing {}'.format(boxscore_id))
     return pd.Series({
         'n_diff': (diff != 0).sum(),
         'max_diff': diff.abs().max(),
