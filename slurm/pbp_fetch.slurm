@@ -14,5 +14,7 @@ module load git python/2.7.13-fasrc01
 
 source activate thesis
 
+mkdir -p data/raw
+
 luigid --logdir logs --background
 PYTHONPATH='.' luigi --module src.data.pbp_fetch_data PBPRangeFetcher --start-year 2002 --end-year 2016 --workers 4

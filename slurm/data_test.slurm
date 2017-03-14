@@ -14,4 +14,6 @@ module load git python/2.7.13-fasrc01
 
 source activate thesis
 
+mkdir -p data/testing
+
 python src/testing/data_test.py
