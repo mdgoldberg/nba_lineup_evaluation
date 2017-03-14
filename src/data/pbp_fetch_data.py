@@ -5,16 +5,14 @@ import dotenv
 import luigi
 import numpy as np
 import pandas as pd
-import dask
-from dask import dataframe as dd, bag as db, diagnostics
+from dask import bag as db
 
 from sportsref import nba
 
 dotenv_path = dotenv.find_dotenv()
 dotenv.load_dotenv(dotenv_path)
 
-PROJ_DIR = os.environ['PROJ_DIR']
-SRC_DIR = os.path.join(PROJ_DIR, 'src')
+PROJ_DIR = os.environ['PROJ_DIR']  # from .env
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
 
 
