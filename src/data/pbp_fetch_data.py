@@ -34,7 +34,7 @@ def process_boxscore_id(boxscore_id):
     logger = get_logger()
     bs = nba.BoxScore(boxscore_id)
     try:
-        df = bs.pbp(sparse_lineups=True)
+        df = bs.pbp(dense_lineups=True, sparse_lineups=True)
         logger.info('Parsed {} play-by-play data'.format(boxscore_id))
         return df
     except Exception as e:
