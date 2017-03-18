@@ -51,7 +51,7 @@ def fetch_pbp_data_year(year):
     dfs = dfs_bag.compute()
     filt_dfs = [df for df in dfs if df is not None]
     df = pd.concat(filt_dfs)
-    clean_df = nba.pbp.clean_multigame_features(df)
+    clean_df = nba.pbp.clean_multigame_features(df).reset_index(drop=True)
     return clean_df
 
 
