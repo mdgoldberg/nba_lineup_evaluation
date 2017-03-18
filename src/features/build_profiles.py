@@ -496,29 +496,28 @@ def combined_rapm(combined_df, players, reps, weight=6):
             return np.zeros(df.shape[0])
 
     play_grouped = combined_df.groupby('play_id')
-    play_res = play_grouped.tail(1)
+    play_end = play_grouped.tail(1)
 
     off_df = pd.DataFrame({
-        '{}_off_rapm'.format(p): on_off(play_res, p) for p in players
+        '{}_off_rapm'.format(p): on_off(play_end, p) for p in players
     })
     off_df['RP_off_rapm'] = pd.DataFrame({
-        '{}_off'.format(p): on_off(play_res, p) for p in reps
+        '{}_off'.format(p): on_off(play_end, p) for p in reps
     }).sum(axis=1)
 
     def_df = pd.DataFrame({
-        '{}_def_rapm'.format(p): on_def(play_res, p) for p in players
+        '{}_def_rapm'.format(p): on_def(play_end, p) for p in players
     })
     def_df['RP_def_rapm'] = pd.DataFrame({
-        '{}_def'.format(p): on_def(play_res, p) for p in reps
+        '{}_def'.format(p): on_def(play_end, p) for p in reps
     }).sum(axis=1)
 
-    X = pd.concat((off_df, -def_df), axis=1)
-    X['hm_off'] = play_res.hm_off
+    X = pd.concat((off_df, -def_df), axis=1).fillna(0)
+    X['hm_off'] = play_end.hm_off
 
-    X.fillna(0, inplace=True)
     y = play_grouped.pts.sum()
-    season_min = play_res.season.min()
-    weights = np.where(play_res.season == season_min, 1, weight)
+    season_min = play_end.season.min()
+    weights = np.where(play_end.season == season_min, 1, weight)
 
     lr = linear_model.RidgeCV(
         alphas=np.logspace(1, 5, base=10, num=5),
