@@ -8,8 +8,7 @@
 \qauthor{Charles Barkley}
 
 \end{savequote}
-\chapter{Introduction}
-\label{introduction}
+\chapter{Introduction} \label{ch:intro}
 
 \newthought{Measuring a individual player's contribution to his team's success} is a
 central question in basketball analytics. National Basketball Association (NBA)
@@ -185,7 +184,7 @@ methods of evaluation in basketball analytics today, there has been some researc
 concerning how players interact to produce outcomes that sets the groundwork for the
 approach I will take in this thesis.
 
-The research that most influenced my approach was Maymin et al (2012). The authors
+The research that most influenced my approach was Maymin et al (2013). The authors
 introduce a framework they call ``Skills Plus/Minus'' (SPM), wherein a probit model
 is used to estimate the probability of a play ending with a specific outcome given
 which players are on the court and a few other predictors (e.g., which team is at
@@ -236,11 +235,16 @@ player's offensive contribution was divided between scoring itself and facilitat
 on offense.
 
 My approach, while conceptually similar to all three of these analyses, will be
-slightly different. Most notably, my model does not involve per-player estimands;
-rather, players are represented quantitatively by statistics summarizing their
-talents and play styles. In fact, many summary statistics are used in order to fully
-capture a player's tendencies and play style. Moreover, it directly models the
-expected point differential per possession on the team level, using relatively
-complex non-linear and non-parametric models such as support vector machines and
-ensemble methods; these methods have the advantage of greater expressiveness but the
-disadvantage of worse interpretability.
+slightly different. Roughly, the approach involves summarizing each player based on
+statistics describing his play and then using these profiles to predict expected
+per-possession point differential based on the play styles of the players on the
+court; for more detail, see Chapter~\ref{ch:methods}. The most notable divergence of
+my approach is that it does not involve per-player estimands; rather, players are
+represented quantitatively by statistics summarizing their talents and play styles.
+Indeed, many summary statistics are used in order to fully capture a player's
+tendencies and play style. Moreover, whereas the other models assume additive
+relationships between player ratings, my approach leverages relatively complex
+non-linear and non-parametric models to directly model the expected point
+differential per possession on the team level. These models, such as support vector
+machines and ensemble methods, have the advantage of greater expressiveness but the
+disadvantage of worse interpretability and inspectability.
