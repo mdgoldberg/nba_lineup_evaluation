@@ -191,7 +191,7 @@ def get_off_plays(df, players, reps):
 
     def num_on_off(df, p):
         in_on_off = (df['{}_in'.format(p)] == (2*df.hm_off - 1))
-        return len(df.ix[in_on_off].groupby(['boxscore_id', 'play_id']))
+        return df.ix[in_on_off, 'play_id'].nunique()
 
     on_floor = df.ix[df.is_fga | df.is_to | df.is_pf]
     player_ops = pd.Series({
@@ -495,7 +495,8 @@ def combined_rapm(combined_df, players, reps, weight=6):
         else:
             return np.zeros(df.shape[0])
 
-    play_res = combined_df.groupby(['boxscore_id', 'play_id']).tail(1)
+    play_grouped = combined_df.groupby('play_id')
+    play_res = play_grouped.tail(1)
 
     off_df = pd.DataFrame({
         '{}_off_rapm'.format(p): on_off(play_res, p) for p in players
@@ -515,7 +516,7 @@ def combined_rapm(combined_df, players, reps, weight=6):
     X['hm_off'] = play_res.hm_off
 
     X.fillna(0, inplace=True)
-    y = combined_df.groupby('play_id').pts.sum()
+    y = play_grouped.pts.sum()
     season_min = play_res.season.min()
     weights = np.where(play_res.season == season_min, 1, weight)
 
