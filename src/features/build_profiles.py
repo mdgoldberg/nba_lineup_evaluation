@@ -48,7 +48,7 @@ class RangeProfiles(luigi.Task):
 
 
 def year_profiles(year):
-    """Get player profiles to be used for plays from a given year.
+    """Get player profiles to be used for possessions from a given year.
 
     :year: int representing the season
     :returns: DataFrame with 361 rows and n_features columns.
@@ -148,7 +148,7 @@ def year_profiles(year):
 
     # RAPM
     combined_df = nba.pbp.clean_multigame_features(
-        pd.concat((last_year, first_half)).reset_index(drop=True)
+        pd.concat((last_year, first_half))
     )
     rapm_profiles = combined_rapm(combined_df, players, reps)
 
@@ -495,41 +495,65 @@ def combined_rapm(combined_df, players, reps, weight=6):
         else:
             return np.zeros(df.shape[0])
 
-    play_grouped = combined_df.groupby('play_id')
-    play_end = play_grouped.tail(1)
+    poss_end = combined_df.groupby('poss_id').tail(1)
+    poss_end = poss_end.query('is_fga | is_to | is_fta')
+    poss_in_use = poss_end.poss_id.unique()
+    select_cols = (nba.pbp.sparse_lineup_cols(combined_df) +
+                   ['season', 'poss_id', 'hm_off', 'pts'])
+    combined_df = combined_df.ix[
+        combined_df.poss_id.isin(poss_in_use), select_cols
+    ]
+    poss_end = poss_end.to_sparse(0)
 
-    off_df = pd.DataFrame({
-        '{}_orapm'.format(p): on_off(play_end, p) for p in players
-    })
+    print 'computing off_df'
+    off_df = pd.SparseDataFrame({
+        '{}_orapm'.format(p): on_off(poss_end, p) for p in players
+    }, default_fill_value=0.)
     off_df['RP_orapm'] = pd.DataFrame({
-        '{}_orapm'.format(p): on_off(play_end, p) for p in reps
-    }).sum(axis=1)
+        '{}_orapm'.format(p): on_off(poss_end, p) for p in reps
+    }).sum(axis=1).values
 
-    def_df = pd.DataFrame({
-        '{}_drapm'.format(p): on_def(play_end, p) for p in players
-    })
+    print 'computing def_df'
+    def_df = pd.SparseDataFrame({
+        '{}_drapm'.format(p): on_def(poss_end, p) for p in players
+    }, default_fill_value=0.)
     def_df['RP_drapm'] = pd.DataFrame({
-        '{}_drapm'.format(p): on_def(play_end, p) for p in reps
-    }).sum(axis=1)
+        '{}_drapm'.format(p): on_def(poss_end, p) for p in reps
+    }).sum(axis=1).values
 
-    X = pd.concat((off_df, -def_df), axis=1).fillna(0)
-    X['hm_off'] = play_end.hm_off.values
+    print 'computing X'
+    X = pd.SparseDataFrame(pd.concat((off_df, -def_df), axis=1),
+                           default_fill_value=0.).fillna(0)
+    X['hm_off'] = poss_end.hm_off.values
 
-    y = play_grouped.pts.sum()
-    season_min = play_end.season.min()
-    weights = np.where(play_end.season == season_min, 1, weight)
+    y = combined_df.groupby('poss_id').pts.sum()
+    season_min = poss_end.season.min()
+    weights = np.where(poss_end.season == season_min, 1, weight)
 
-    lr = linear_model.SGDRegressor(loss='squared_loss', penalty='l2',
-                                   learning_rate='optimal')
-    grid = {
-        'alpha': np.logspace(-7, -1, num=7),
-        'eta0': np.logspace(-4, 0, num=5)
-    }
-    lr_cv = grid_search.GridSearchCV(lr, grid, n_jobs=1, cv=4,
-                                     error_score=np.nan, verbose=2,
-                                     fit_params={'sample_weight': weights})
+    lr = linear_model.SGDRegressor(
+        loss='squared_loss', penalty='l2', learning_rate='optimal'
+    )
+    grid = [
+        {
+            'learning_rate': ['optimal'],
+            'alpha': np.logspace(-3, 1, num=5),
+            'eta0': np.logspace(-3, 1, num=5)
+        }, {
+            'learning_rate': ['invscaling'],
+            'alpha': np.logspace(-5, 1, num=5),
+            'eta0': np.logspace(-5, 1, num=5),
+            'power_t': [0.1, 0.25, 0.5, 0.75]
+        }
+    ]
+    lr_cv = grid_search.GridSearchCV(
+        lr, grid, cv=4, scoring='neg_mean_squared_error',
+        fit_params={'sample_weight': weights},
+        error_score=np.nan, verbose=2, n_jobs=-1
+    )
     lr_cv.fit(X, y)
     lr_best = lr_cv.best_estimator_
+    print grid
+    print lr_cv.best_params_
     print lr_best.score(X, y, sample_weight=weights)
     coefs = pd.Series(lr_best.coef_, index=X.columns).drop('hm_off', axis=0)
     coefs.index = pd.MultiIndex.from_tuples([
