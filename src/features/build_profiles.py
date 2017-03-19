@@ -4,7 +4,7 @@ import dotenv
 import luigi
 import numpy as np
 import pandas as pd
-from sklearn import linear_model
+from sklearn import linear_model, grid_search
 
 from sportsref import nba, decorators
 from src.data import pbp_fetch_data
@@ -499,36 +499,42 @@ def combined_rapm(combined_df, players, reps, weight=6):
     play_end = play_grouped.tail(1)
 
     off_df = pd.DataFrame({
-        '{}_off_rapm'.format(p): on_off(play_end, p) for p in players
+        '{}_orapm'.format(p): on_off(play_end, p) for p in players
     })
-    off_df['RP_off_rapm'] = pd.DataFrame({
-        '{}_off'.format(p): on_off(play_end, p) for p in reps
+    off_df['RP_orapm'] = pd.DataFrame({
+        '{}_orapm'.format(p): on_off(play_end, p) for p in reps
     }).sum(axis=1)
 
     def_df = pd.DataFrame({
-        '{}_def_rapm'.format(p): on_def(play_end, p) for p in players
+        '{}_drapm'.format(p): on_def(play_end, p) for p in players
     })
-    def_df['RP_def_rapm'] = pd.DataFrame({
-        '{}_def'.format(p): on_def(play_end, p) for p in reps
+    def_df['RP_drapm'] = pd.DataFrame({
+        '{}_drapm'.format(p): on_def(play_end, p) for p in reps
     }).sum(axis=1)
 
     X = pd.concat((off_df, -def_df), axis=1).fillna(0)
-    X['hm_off'] = play_end.hm_off
+    X['hm_off'] = play_end.hm_off.values
 
     y = play_grouped.pts.sum()
     season_min = play_end.season.min()
     weights = np.where(play_end.season == season_min, 1, weight)
 
-    lr = linear_model.RidgeCV(
-        alphas=np.logspace(1, 5, base=10, num=5),
-    )
-    lr.fit(X, y, sample_weight=weights)
-    print lr.score(X, y, sample_weight=weights)
-    coefs = pd.Series(lr.coef_, index=X.columns).drop('hm_off', axis=0)
+    lr = linear_model.SGDRegressor(loss='squared_loss', penalty='l2',
+                                   learning_rate='optimal')
+    grid = {
+        'alpha': np.logspace(-7, -1, num=7),
+        'eta0': np.logspace(-4, 0, num=5)
+    }
+    lr_cv = grid_search.GridSearchCV(lr, grid, n_jobs=1, cv=4,
+                                     error_score=np.nan, verbose=2,
+                                     fit_params={'sample_weight': weights})
+    lr_cv.fit(X, y)
+    lr_best = lr_cv.best_estimator_
+    print lr_best.score(X, y, sample_weight=weights)
+    coefs = pd.Series(lr_best.coef_, index=X.columns).drop('hm_off', axis=0)
     coefs.index = pd.MultiIndex.from_tuples([
-        (idx.split('_')[0], '_'.join(idx.split('_')[1:]))
-         for idx in coefs.index
+        idx.split('_') for idx in coefs.index
     ])
     coefs = coefs.unstack(level=1)
 
-    return X, y, lr, coefs
+    return X, y, lr_cv, coefs
