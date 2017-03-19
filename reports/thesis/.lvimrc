@@ -1,2 +1,2 @@
 nnoremap <leader>c :w<CR>:Dispatch! inv compile<CR>
-nnoremap <silent> <leader>v :w<CR>:!inv view<CR>redraw!<CR>
+nnoremap <silent> <leader>v :w<CR>:!inv view<CR>:redraw!<CR>

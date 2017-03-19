@@ -50,27 +50,43 @@ within each possession. Other, slightly simpler problems included tracking which
 team was on offense or defense at any given time and consolidating redundant
 substutitions in which a player would sub in and immediately sub out.
 
-Once the raw data was cleaned, additional features were added to the data. Simple
-new features include keeping track of the home and away teams' points scored on each
-event, so that point differential can easily be computed for any subset of events.
-One very important and more complicated feature was identifying ``plays,'' a
-possession-like concept for which Maymin et al advocates. In particular, the
-definition of a play is identical to the definition of a possession, except that an
-offensive rebound extends a possession but begins a new play. Differentiating plays
-was done by labeling events that end a play with an indicator variable and computing
-the cumulative sum of these variables to create a play identification number for
-each event. Specifically, play-ending events include turnovers, field goal attempts
-on which fouls were not committed, non-technical free throws that are not succeeded
-by another free throw, and the end of each quarter or overtime period.
+Once the raw data was cleaned, additional features were added to the data. For
+instance, simple new features include the home and away teams' points scored on each
+event, which can be used to easily compute point differential for any subset of
+events. One very important and more complicated feature was identifying ``plays,'' a
+possession-like concept introduced by Maymin et al. In particular, the definition of
+a play is identical to the definition of a possession, except that an offensive
+rebound extends a possession but begins a new play. Distinguishing plays from
+possessions was important because it provides more context for the profile
+statistics described in section (TODO), as it allows another opportunity to log
+events such as field goal attempts, rebounds, assists, and personal fouls.
+Therefore, when computing rate statistics for players, it is more revealing to use
+per-play statistics than per-possession statistics. Differentiating plays was done
+by labeling events that end a play with an indicator variable and computing the
+cumulative sum of these variables to create a play identification number for each
+event. Specifically, play-ending events include turnovers, field goal attempts on
+which fouls were not committed, non-technical free throws that are not succeeded by
+another free throw, and the end of each quarter or overtime period. Possessions were
+identified using a similar procedure; while plays are more indicative of play style
+for most of the profile statistics in section (TODO), others require possession
+data.
 
-% TODO: discuss collecting lineup data
-* Used parsed play-by-play data to determine who is in the game at any given point
-    - mention issue with quarter starters
+Next, analyzing lineups requires data that indicates which players are on the court
+for any given event. While the data provided by basketball-reference.com does not
+explicitly give this information, it does include substitution data, where each
+substitution is logged as an independent event. However, substitution events are
+only logged for substitutions in the middle of a quarter or overtime period;
+substitutions between periods were not indicated in the raw data. Therefore, to
+determine which players start each period, it was necessary to comb through each
+period and note which players are involved in events (including being substituted
+out) prior to being substituted in. When a player was never substituted out and was
+never involved in an event, the player can be determined by computing each player's
+minutes played based on the play-by-play data to his minutes played as listed in the
+box score. Once the starters of each period were determined, it is relatively
+straightforward to use substitution data to determine each team's lineup for any
+given event.
 
 % TODO: display some data for an example (table? pweave?)
-
-* Engineered player profile features from play-by-play data
-    - go over player profile
 
 % \begin{figure}
 % \includegraphics[width=\textwidth]{figures/fig1}

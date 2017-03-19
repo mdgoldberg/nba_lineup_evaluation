@@ -189,13 +189,11 @@ introduce a framework they call ``Skills Plus/Minus'' (SPM), wherein a probit mo
 is used to estimate the probability of a play ending with a specific outcome given
 which players are on the court and a few other predictors (e.g., which team is at
 home). Each player has an offensive and defensive rating associated with each
-possible play outcome, and the models were fit on the ``play'' level rather than the
-possession level (where each offensive rebound begins a new play, but not a new
-possession). The authors then use these ratings and models of possession outcomes to
-simulate games by estimating the probabilities of various outcomes based on the
-lineups and then drawing from the corresponding multinomial distribution. Using this
-simulation framework, the authors were able to determine each skill's worth,
-measured in points over replacement player; which skills combined to increase
+possible play outcome. The authors then use these ratings and models of possession
+outcomes to simulate games by estimating the probabilities of various outcomes based
+on the lineups and then drawing from the corresponding multinomial distribution.
+Using this simulation framework, the authors were able to determine each skill's
+worth, measured in points over replacement player; which skills combined to increase
 overall point differential more (or less) than the sum of the individual skills; how
 each team’s starting lineup is affected by synergies between players; and finally,
 which trades would be mutually beneficial. The main difference between this approach
