@@ -111,6 +111,7 @@ ENV/
 *.fdb_latexmk
 *.fls
 *.pdf
+reports/thesis/_minted-thesis
 
 # logs
 /logs/
