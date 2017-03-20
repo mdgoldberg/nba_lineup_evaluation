@@ -8,7 +8,7 @@ dotenv.load_dotenv(dotenv_path)
 
 thesis_dir = os.path.join(os.environ['PROJ_DIR'], 'reports', 'thesis')
 
-@invole.task
+@invoke.task
 def compile_pweave(ctx):
     for (path, _, filenames) in os.walk(thesis_dir, followlinks=True):
         for filename in filenames:
