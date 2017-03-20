@@ -1,4 +1,5 @@
 import os
+import time
 
 import dotenv
 import luigi
@@ -47,15 +48,17 @@ class RangeProfiles(luigi.Task):
         ]
 
 
-def year_profiles(year):
+def year_profiles(df):
     """Get player profiles to be used for possessions from a given year.
 
     :year: int representing the season
     :returns: DataFrame with 361 rows and n_features columns.
     """
-    this_year = get_data(year)
-    last_year = get_data(year-1)
-    first_half, _ = split_data(this_year)
+    # this_year = get_data(year)
+    # last_year = get_data(year-1)
+    # first_half, _ = split_data(this_year)
+    first_half = df
+    last_year = df
 
     all_pcols = (nba.pbp.sparse_lineup_cols(first_half) +
                    nba.pbp.sparse_lineup_cols(last_year))
@@ -565,4 +568,4 @@ def combined_rapm(combined_df, players, reps, weight=6):
     ])
     coefs = coefs.unstack(level=1)
 
-    return X, y, lr_cv, coefs
+    return coefs
