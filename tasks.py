@@ -8,7 +8,16 @@ dotenv.load_dotenv(dotenv_path)
 
 thesis_dir = os.path.join(os.environ['PROJ_DIR'], 'reports', 'thesis')
 
-@invoke.task
+@invole.task
+def compile_pweave(ctx):
+    for (path, _, filenames) in os.walk(thesis_dir, followlinks=True):
+        for filename in filenames:
+            src_path = os.path.join(path, filename)
+            dst_path = os.path.join(path, filename[:-1])
+            ctx.run('pweave -f texminted -m -g png -o {} {}'
+                    .format(dst_path, src_path))
+
+@invoke.task(compile_pweave)
 def compile(ctx):
     start_dir = os.getcwd()
     os.chdir(thesis_dir)
