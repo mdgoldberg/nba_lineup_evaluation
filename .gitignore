@@ -105,7 +105,6 @@ ENV/
 /data/
 
 # latex
-*.tex  # all source files are in .texw for pweave
 *.aux
 *.bbl
 *.blg
