@@ -11,9 +11,10 @@ thesis_dir = os.path.join(os.environ['PROJ_DIR'], 'reports', 'thesis')
 @invoke.task
 def compile_pweave(ctx):
     for (path, _, filenames) in os.walk(thesis_dir, followlinks=True):
-        for filename in filenames:
-            src_path = os.path.join(path, filename)
-            dst_path = os.path.join(path, filename[:-1])
+        texw_files = [fn for fn in filenames if fn.endswith('.texw')]
+        for texw_file in texw_files:
+            src_path = os.path.join(path, texw_file)
+            dst_path = os.path.join(path, texw_file[:-1])
             ctx.run('pweave -f texminted -m -g png -o {} {}'
                     .format(dst_path, src_path))
 
