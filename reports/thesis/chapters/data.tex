@@ -87,10 +87,9 @@ straightforward to use substitution data to determine each team's lineup for any
 given event.
 
 % TODO: display some data for an example (table? pweave?)
-<<table, echo=False, cache=True, results='tex'>>=
-import pandas as pd
-df = pd.read_csv('data/raw/pbp_2016.csv')
-@
+
+
+
 
 <%=
 df.sample(10)[['season', 'boxscore_id', 'home', 'away', 'poss_id', 'play_id',

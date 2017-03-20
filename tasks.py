@@ -22,10 +22,10 @@ def compile_pweave(ctx):
 def compile(ctx):
     start_dir = os.getcwd()
     os.chdir(thesis_dir)
-    ctx.run('xelatex thesis')
+    ctx.run('xelatex -shell-escape thesis')
     ctx.run('bibtex thesis')
-    ctx.run('xelatex thesis')
-    ctx.run('xelatex thesis')
+    ctx.run('xelatex -shell-escape thesis')
+    ctx.run('xelatex -shell-escape thesis')
     ctx.run('mv thesis.log .logged')
     ctx.run('latexmk -c')
     os.chdir(start_dir)

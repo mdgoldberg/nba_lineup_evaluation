@@ -76,6 +76,7 @@ def year_profiles(year):
     def_plays['RP'] = all_def_plays[reps].sum()
 
     # offensive stats
+    print 'starting offense', time.time()
     fga = combine_stat(get_tot_fga, last_year, first_half, players, reps)
     fga_by_region = combine_stat(get_fga_by_region, last_year, first_half,
                                  players, reps)
@@ -115,6 +116,7 @@ def year_profiles(year):
                              axis=1).fillna(0)
 
     # defensive stats
+    print 'starting defense', time.time()
     blk = combine_stat(get_blk, last_year, first_half, players, reps)
     stl = combine_stat(get_stl, last_year, first_half, players, reps)
     opp_fg2a = combine_stat(get_opp_fg2a, last_year, first_half,
@@ -133,6 +135,7 @@ def year_profiles(year):
     ]
 
     # rebounding stats
+    print 'starting rebounding', time.time()
     orb = combine_stat(get_orb, last_year, first_half, players, reps)
     drb = combine_stat(get_drb, last_year, first_half, players, reps)
     orb_opp = combine_stat(get_orb_opps, last_year, first_half, players, reps)
@@ -147,6 +150,7 @@ def year_profiles(year):
     ]
 
     # RAPM
+    print 'starting RAPM', time.time()
     combined_df = nba.pbp.clean_multigame_features(
         pd.concat((last_year, first_half))
     )
