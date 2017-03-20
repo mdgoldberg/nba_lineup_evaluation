@@ -15,6 +15,14 @@ dotenv.load_dotenv(env_path)
 PROJ_DIR = os.environ['PROJ_DIR']
 
 
+def get_logger():
+    logging.config.fileConfig(
+        os.path.join(PROJ_DIR, 'logging_config.ini')
+    )
+    logger = logging.getLogger()
+    return logger
+
+
 class YearProfiles(luigi.Task):
 
     year = luigi.IntParameter()
@@ -54,6 +62,8 @@ def year_profiles(year):
     :year: int representing the season
     :returns: DataFrame with 361 rows and n_features columns.
     """
+    logger = get_logger()
+
     this_year = get_data(year)
     last_year = get_data(year-1)
     first_half, _ = split_data(this_year)
@@ -77,7 +87,7 @@ def year_profiles(year):
     def_plays['RP'] = all_def_plays[reps].sum()
 
     # offensive stats
-    print 'starting offense', time.time()
+    logger.info('starting offense')
     fga = combine_stat(get_tot_fga, last_year, first_half, players, reps)
     fga_by_region = combine_stat(get_fga_by_region, last_year, first_half,
                                  players, reps)
@@ -103,6 +113,7 @@ def year_profiles(year):
                              players, reps)
 
     # offensive features
+    logger.info('offensive features')
     off_profiles = pd.concat((
         fga/off_plays, asts/tm_fgm, ftm/fta, fta/fga, fouls_drawn/off_plays,
         lost_balls/off_plays, bad_passes/off_plays, travels/off_plays,
@@ -117,7 +128,7 @@ def year_profiles(year):
                              axis=1).fillna(0)
 
     # defensive stats
-    print 'starting defense', time.time()
+    logger.info('starting defense')
     blk = combine_stat(get_blk, last_year, first_half, players, reps)
     stl = combine_stat(get_stl, last_year, first_half, players, reps)
     opp_fg2a = combine_stat(get_opp_fg2a, last_year, first_half,
@@ -128,6 +139,7 @@ def year_profiles(year):
     opp_to = combine_stat(get_opp_to, last_year, first_half, players, reps)
 
     # defensive features
+    logger.info('defensive features')
     def_profiles = pd.concat((
         blk/opp_fg2a, stl/def_plays, pf/def_plays, opp_to/def_plays
     ), axis=1).fillna(0)
@@ -136,13 +148,14 @@ def year_profiles(year):
     ]
 
     # rebounding stats
-    print 'starting rebounding', time.time()
+    logger.info('starting rebounding')
     orb = combine_stat(get_orb, last_year, first_half, players, reps)
     drb = combine_stat(get_drb, last_year, first_half, players, reps)
     orb_opp = combine_stat(get_orb_opps, last_year, first_half, players, reps)
     drb_opp = combine_stat(get_drb_opps, last_year, first_half, players, reps)
 
     # rebounding features
+    logger.info('defensive features')
     reb_profiles = pd.concat((
         orb/orb_opp, drb/drb_opp
     ), axis=1).fillna(0)
@@ -151,7 +164,7 @@ def year_profiles(year):
     ]
 
     # RAPM
-    print 'starting RAPM', time.time()
+    logger.info('starting RAPM')
     combined_df = nba.pbp.clean_multigame_features(
         pd.concat((last_year, first_half))
     )
@@ -159,6 +172,7 @@ def year_profiles(year):
 
     # TODO: IOT?
 
+    logger.info('combining all profiles')
     profiles = pd.concat(
         (off_profiles, def_profiles, reb_profiles, rapm_profiles),
         axis=1
@@ -500,6 +514,8 @@ def combined_rapm(combined_df, players, reps, weight=6):
         else:
             return np.zeros(df.shape[0])
 
+    logger = get_logger()
+
     poss_end = combined_df.groupby('poss_id').tail(1)
     poss_end = poss_end.query('is_fga | is_to | is_fta')
     poss_in_use = poss_end.poss_id.unique()
@@ -510,7 +526,7 @@ def combined_rapm(combined_df, players, reps, weight=6):
     ]
     poss_end = poss_end.to_sparse(0)
 
-    print 'computing off_df'
+    logger.info('computing off_df')
     off_df = pd.SparseDataFrame({
         '{}_orapm'.format(p): on_off(poss_end, p) for p in players
     }, default_fill_value=0.)
@@ -518,7 +534,7 @@ def combined_rapm(combined_df, players, reps, weight=6):
         '{}_orapm'.format(p): on_off(poss_end, p) for p in reps
     }).sum(axis=1).values
 
-    print 'computing def_df'
+    logger.info('computing def_df')
     def_df = pd.SparseDataFrame({
         '{}_drapm'.format(p): on_def(poss_end, p) for p in players
     }, default_fill_value=0.)
@@ -526,11 +542,12 @@ def combined_rapm(combined_df, players, reps, weight=6):
         '{}_drapm'.format(p): on_def(poss_end, p) for p in reps
     }).sum(axis=1).values
 
-    print 'computing X'
+    logger.info('computing X')
     X = pd.SparseDataFrame(pd.concat((off_df, -def_df), axis=1),
                            default_fill_value=0.).fillna(0)
     X['hm_off'] = poss_end.hm_off.values
 
+    logger.info('computing y')
     y = combined_df.groupby('poss_id').pts.sum()
     season_min = poss_end.season.min()
     weights = np.where(poss_end.season == season_min, 1, weight)
@@ -553,14 +570,19 @@ def combined_rapm(combined_df, players, reps, weight=6):
     lr_cv = grid_search.GridSearchCV(
         lr, grid, cv=4, scoring='neg_mean_squared_error',
         fit_params={'sample_weight': weights},
-        error_score=np.nan, verbose=2, n_jobs=-1
+        error_score=np.nan, verbose=2, n_jobs=4, pre_dispatch='n_jobs'
     )
+    logger.info('fitting GridSearchCV')
     lr_cv.fit(X, y)
     lr_best = lr_cv.best_estimator_
-    print grid
-    print lr_cv.best_params_
-    print lr_best.score(X, y, sample_weight=weights)
-    coefs = pd.Series(lr_best.coef_, index=X.columns).drop('hm_off', axis=0)
+    coefs = pd.Series(lr_best.coef_, index=X.columns)
+
+    logger.info('Grid: {}'.format(grid))
+    logger.info('Best Params: {}'.format(lr_cv.best_params_))
+    logger.info('R^2: {}'.format(lr_best.score(X, y, sample_weight=weights)))
+    logger.info('home_offense coef: {}'.format(coefs['hm_off']))
+
+    coefs.drop('hm_off', axis=0, inplace=True)
     coefs.index = pd.MultiIndex.from_tuples([
         idx.split('_') for idx in coefs.index
     ])
