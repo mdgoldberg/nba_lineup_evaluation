@@ -568,7 +568,7 @@ def combined_rapm(combined_df, players, reps, weight=6):
     lr_cv = grid_search.GridSearchCV(
         lr, grid, cv=4, scoring='neg_mean_squared_error',
         fit_params={'sample_weight': weights},
-        error_score=np.nan, verbose=2, n_jobs=4, pre_dispatch='n_jobs'
+        error_score=np.nan, verbose=2, n_jobs=-1
     )
     logger.info('fitting GridSearchCV')
     lr_cv.fit(X, y)
