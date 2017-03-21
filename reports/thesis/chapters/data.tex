@@ -1,7 +1,6 @@
 %!TEX root = ../thesis.tex
 
-\chapter{Data} \label{ch:data}
-
+\chapter{Data} \label{ch:data} 
 \nocite{*}
 
 \newthought{In order to carry out the analysis herein,} it was necessary to gather
@@ -51,25 +50,26 @@ team was on offense or defense at any given time and consolidating redundant
 substutitions in which a player would sub in and immediately sub out.
 
 Once the raw data was cleaned, additional features were added to the data. For
-instance, simple new features include the home and away teams' points scored on each
-event, which can be used to easily compute point differential for any subset of
-events. One very important and more complicated feature was identifying ``plays,'' a
-possession-like concept introduced by Maymin et al. In particular, the definition of
-a play is identical to the definition of a possession, except that an offensive
-rebound extends a possession but begins a new play. Distinguishing plays from
-possessions was important because it provides more context for the profile
-statistics described in section (TODO), as it allows another opportunity to log
-events such as field goal attempts, rebounds, assists, and personal fouls.
-Therefore, when computing rate statistics for players, it is more revealing to use
-per-play statistics than per-possession statistics. Differentiating plays was done
-by labeling events that end a play with an indicator variable and computing the
-cumulative sum of these variables to create a play identification number for each
-event. Specifically, play-ending events include turnovers, field goal attempts on
-which fouls were not committed, non-technical free throws that are not succeeded by
-another free throw, and the end of each quarter or overtime period. Possessions were
-identified using a similar procedure; while plays are more indicative of play style
-for most of the profile statistics in section (TODO), others require possession
-data.
+instance, simple new features include the home and away teams' points scored on
+each event, which can be used to easily compute point differential for any
+subset of events. One very important and more complicated feature was
+identifying ``plays,'' a possession-like concept introduced by Maymin et al. In
+particular, the definition of a play is identical to the definition of a
+possession, except that an offensive rebound extends a possession but begins a
+new play. Distinguishing plays from possessions was important because it
+provides more context for the profile statistics described in section
+\ref{sec:profiles}, as each play allows another opportunity to log events such
+as field goal attempts, rebounds, assists, and personal fouls.  Therefore, when
+computing rate statistics for players, it is more revealing to use per-play
+statistics than per-possession statistics. Differentiating plays was done by
+labeling events that end a play with an indicator variable and computing the
+cumulative sum of these variables to create a play identification number for
+each event. Specifically, play-ending events include turnovers, field goal
+attempts on which fouls were not committed, non-technical free throws that are
+not succeeded by another free throw, and the end of each quarter or overtime
+period. Possessions were identified using a similar procedure; while plays are
+more indicative of play style for most of the profile statistics in section
+\ref{sec:profiles}, others require possession data.
 
 Next, analyzing lineups requires data that indicates which players are on the court
 for any given event. While the data provided by basketball-reference.com does not
@@ -86,15 +86,28 @@ box score. Once the starters of each period were determined, it is relatively
 straightforward to use substitution data to determine each team's lineup for any
 given event.
 
-% TODO: display some data for an example (table? pweave?)
+% TODO: fix table below, pick better events
 
+\begin{center}
+\begin{tabular}{llrrlll}
+\toprule
+{} &   boxscore\_id &  secs\_elapsed &  poss\_id & off\_team & def\_team &                                             detail \\
+\midrule
+19  &  201510270ATL &         168.0 &       11 &      ATL &      DET &               teaguje01 misses 2-pt shot from 1 ft \\
+488 &  201510270CHI &         282.0 &      215 &      CHI &      CLE &                     Defensive rebound by jamesle01 \\
+152 &  201510270ATL &        1061.0 &       74 &      ATL &      DET &                     Defensive rebound by drumman01 \\
+153 &  201510270ATL &        1070.0 &       74 &      DET &      ATL &  Turnover by blakest01 (bad pass; steal by korv... \\
+729 &  201510270CHI &        1772.0 &      313 &      CLE &      CHI &                smithjr01 makes 2-pt shot from 6 ft \\
+739 &  201510270CHI &        1822.0 &      318 &      CHI &      CLE &             gibsota01 enters the game for rosede01 \\
+322 &  201510270ATL &        2327.0 &      154 &      DET &      ATL &              ilyaser01 misses 3-pt shot from 25 ft \\
+356 &  201510270ATL &        2524.0 &      167 &      DET &      ATL &                     Defensive rebound by millspa01 \\
+856 &  201510270CHI &        2582.0 &      368 &      CHI &      CLE &                  mirotni01 makes free throw 1 of 2 \\
+435 &  201510270ATL &        2851.0 &      188 &      DET &      ATL &                  caldwke01 makes free throw 1 of 2 \\
+\bottomrule
+\end{tabular}
+\end{center}
 
-
-
-<%=
-df.sample(10)[['season', 'boxscore_id', 'home', 'away', 'poss_id', 'play_id',
-'off_team', 'def_team', 'detail']]
- >
+% TODO: discuss errors in the lineup data, table of results
 
 % \begin{figure}
 % \includegraphics[width=\textwidth]{figures/fig1}

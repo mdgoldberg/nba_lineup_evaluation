@@ -6,7 +6,7 @@ import dotenv
 import luigi
 import numpy as np
 import pandas as pd
-from sklearn import linear_model, grid_search, metrics
+from sklearn import linear_model, grid_search
 
 from sportsref import nba, decorators
 from src.data import pbp_fetch_data
@@ -517,70 +517,64 @@ def combined_rapm(combined_df, players, reps, weight=6):
 
     logger = get_logger()
 
-    poss_end = combined_df.groupby('poss_id').tail(1)
-    poss_end = poss_end.query('is_fga | is_to | is_fta')
-    poss_in_use = poss_end.poss_id.unique()
-    select_cols = (nba.pbp.sparse_lineup_cols(combined_df) +
-                   ['season', 'poss_id', 'hm_off', 'pts'])
-    combined_df = combined_df.ix[
-        combined_df.poss_id.isin(poss_in_use), select_cols
+    diffs = combined_df.groupby('boxscore_id').is_sub.cumsum().diff().fillna(0)
+    combined_df['stint_id'] = np.cumsum(np.where(diffs < 0, 1, diffs))
+    stint_df = combined_df.loc[
+        ~(combined_df.is_sub | combined_df.is_jump_ball |
+          combined_df.is_dreb | combined_df.is_timeout |
+          (combined_df.is_pf & ~combined_df.is_off_foul))
     ]
-    poss_end = poss_end.to_sparse(0)
+    # logger.info('Filtering possessions')
+    # stint_df = stint_df.groupby('stint_id').filter(
+    #     lambda x: x.groupby('hm_off').poss_id.nunique().shape[0] == 2
+    # )
+    stint_grouped = stint_df.groupby(['stint_id'])#, 'hm_off'])
+
+    stint_end = stint_grouped.tail(1)
+    stint_end = stint_end.loc[
+        :, nba.pbp.sparse_lineup_cols(stint_end) +
+        ['season', 'hm_off', 'stint_id']
+    ]
 
     logger.info('computing off_df')
-    off_df = pd.SparseDataFrame({
-        '{}_orapm'.format(p): on_off(poss_end, p) for p in players
-    }, default_fill_value=0.)
+    off_df = pd.DataFrame({
+        '{}_orapm'.format(p): on_off(stint_end, p) for p in players
+    })
     off_df['RP_orapm'] = pd.DataFrame({
-        '{}_orapm'.format(p): on_off(poss_end, p) for p in reps
+        '{}_orapm'.format(p): on_off(stint_end, p) for p in reps
     }).sum(axis=1).values
 
     logger.info('computing def_df')
-    def_df = pd.SparseDataFrame({
-        '{}_drapm'.format(p): on_def(poss_end, p) for p in players
-    }, default_fill_value=0.)
+    def_df = pd.DataFrame({
+        '{}_drapm'.format(p): on_def(stint_end, p) for p in players
+    })
     def_df['RP_drapm'] = pd.DataFrame({
-        '{}_drapm'.format(p): on_def(poss_end, p) for p in reps
+        '{}_drapm'.format(p): on_def(stint_end, p) for p in reps
     }).sum(axis=1).values
 
     logger.info('computing X')
-    X = pd.SparseDataFrame(pd.concat((off_df, -def_df), axis=1),
-                           default_fill_value=0.).fillna(0)
-    X['hm_off'] = poss_end.hm_off.values
+    X = pd.DataFrame(pd.concat((off_df, -def_df), axis=1))
+    X['hm_off'] = stint_end.hm_off.values
 
     logger.info('computing y')
-    y = combined_df.groupby('poss_id').pts.sum()
-    season_min = poss_end.season.min()
-    weights = np.where(poss_end.season == season_min, 1, weight)
+    pts = stint_grouped.hm_pts.sum().values - stint_grouped.aw_pts.sum().values
+    num_poss = stint_grouped.poss_id.nunique().values
+    y = 100. * pts / num_poss
+    season_min = stint_end.season.min()
+    weights = np.where(stint_end.season == season_min, num_poss,
+                       weight*num_poss)
 
-    lr = linear_model.SGDRegressor(loss='squared_loss', penalty='l2',
-                                   average=True)
-    grid = [{
-        'learning_rate': ['invscaling'],
-        'alpha': [1e-5, 1e-4, 1e-3, 1e-2],
-        'eta0': [.0005, .001, .01, .1],
-        'power_t': [.001, .05, 0.1, 0.15]
-    }, {
-        'learning_rate': ['constant'],
-        'alpha': [1e-4, 1e-3, 1e-2, 1e-1],
-        'eta0': [.0005, .001, .01, .1]
-    }]
-    lr_cv = grid_search.GridSearchCV(
-        lr, grid, cv=4, scoring='neg_mean_squared_error',
-        fit_params={'sample_weight': weights},
-        error_score=np.nan, verbose=2, n_jobs=4, pre_dispatch='n_jobs'
-    )
-    logger.info('fitting GridSearchCV')
-    lr_cv.fit(X, y)
-    lr_best = lr_cv.best_estimator_
-    coefs = pd.Series(lr_best.coef_, index=X.columns)
+    # import ipdb; ipdb.set_trace()
+    # for i, (lab, grp) in enumerate(stint_grouped):
+    #     pass
 
-    logger.info('Grid: {}'.format(grid))
-    logger.info('Best Params: {}'.format(lr_cv.best_params_))
-    logger.info('R^2: {}'.format(lr_best.score(X, y, sample_weight=weights)))
-    logger.info('RMSE: {}'.format(
-        np.sqrt(metrics.mean_squared_error(y, lr_best.predict(X)))
-    ))
+    logger.info('fitting model with CV')
+    ridge = linear_model.RidgeCV(alphas=np.logspace(-4, 5, num=10), cv=5)
+    ridge.fit(X, y, sample_weight=weights)
+    coefs = pd.Series(ridge.coef_, index=X.columns)
+
+    logger.info('alpha: {}'.format(ridge.alpha_))
+    logger.info('R^2: {}'.format(ridge.score(X, y, sample_weight=weights)))
     logger.info('home_offense coef: {}'.format(coefs['hm_off']))
 
     coefs.drop('hm_off', axis=0, inplace=True)
@@ -589,4 +583,6 @@ def combined_rapm(combined_df, players, reps, weight=6):
     ])
     coefs = coefs.unstack(level=1)
 
-    return X, y, lr_cv, coefs
+    import ipdb; ipdb.set_trace()
+
+    return X, y, weights, ridge, coefs
