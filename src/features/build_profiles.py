@@ -516,6 +516,7 @@ def combined_rapm(combined_df, players, reps, weight=6):
             return np.zeros(df.shape[0])
 
     logger = get_logger()
+    logger.info('Starting RAPM calculations')
 
     poss_end = combined_df.groupby('poss_id').tail(1)
     poss_end = poss_end.query('is_fga | is_to | is_fta')
@@ -568,7 +569,7 @@ def combined_rapm(combined_df, players, reps, weight=6):
     lr_cv = grid_search.GridSearchCV(
         lr, grid, cv=4, scoring='neg_mean_squared_error',
         fit_params={'sample_weight': weights},
-        error_score=np.nan, verbose=2, n_jobs=-1
+        error_score=np.nan, verbose=2, n_jobs=4, pre_dispatch='n_jobs'
     )
     logger.info('fitting GridSearchCV')
     lr_cv.fit(X, y)
