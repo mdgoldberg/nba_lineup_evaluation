@@ -10,6 +10,7 @@ from sklearn import linear_model, grid_search, metrics
 
 from sportsref import nba, decorators
 from src.data import pbp_fetch_data
+from src.features import helpers
 
 env_path = dotenv.find_dotenv()
 dotenv.load_dotenv(env_path)
@@ -36,7 +37,7 @@ class YearProfiles(luigi.Task):
 
     def output(self):
         path = os.path.join(
-            PROJ_DIR, 'data', 'processed', 'profiles_{}.csv'.format(self.year)
+            PROJ_DIR, 'data', 'interim', 'profiles_{}.csv'.format(self.year)
         )
         return luigi.LocalTarget(path)
 
@@ -65,9 +66,9 @@ def year_profiles(year):
     """
     logger = get_logger()
 
-    this_year = get_data(year)
-    last_year = get_data(year-1)
-    first_half, _ = split_data(this_year)
+    this_year = helpers.get_data(year)
+    last_year = helpers.get_data(year-1)
+    first_half, _ = helpers.split_data(this_year)
 
     all_pcols = (nba.pbp.sparse_lineup_cols(first_half) +
                    nba.pbp.sparse_lineup_cols(last_year))
@@ -181,22 +182,6 @@ def year_profiles(year):
     profiles.index = [(p, year) for p in profiles.index]
 
     return profiles
-
-
-@decorators.memoize
-def get_data(yr):
-    return pd.read_csv(
-        os.path.join(PROJ_DIR, 'data', 'raw', 'pbp_{}.csv'.format(yr))
-    )
-
-
-def split_data(df):
-    df = df.sort_values(['year', 'month', 'day'])
-    game_num = np.cumsum(df.boxscore_id != df.boxscore_id.shift(1))
-    mid = game_num.max() / 2
-    first_half = df.ix[game_num <= mid]
-    second_half = df.ix[game_num > mid]
-    return first_half, second_half
 
 
 def combine_stat(stat_func, last_year, first_half, players, reps, weight=6):
@@ -519,7 +504,7 @@ def combined_rapm(combined_df, players, reps, weight=6):
     logger.info('Starting RAPM calculations')
 
     poss_end = combined_df.groupby('poss_id').tail(1)
-    poss_end = poss_end.query('is_fga | is_to | is_fta')
+    poss_end = poss_end.query('is_fga | is_to | is_pf_fta')
     poss_in_use = poss_end.poss_id.unique()
     select_cols = (nba.pbp.sparse_lineup_cols(combined_df) +
                    ['season', 'poss_id', 'hm_off', 'pts'])
@@ -545,31 +530,29 @@ def combined_rapm(combined_df, players, reps, weight=6):
     }).sum(axis=1).values
 
     logger.info('computing X')
-    X = pd.SparseDataFrame(pd.concat((off_df, -def_df), axis=1),
-                           default_fill_value=0.).fillna(0)
+    X = pd.SparseDataFrame(
+        pd.concat((off_df, -def_df), axis=1).fillna(0).reset_index(drop=True),
+        default_fill_value=0.
+    )
     X['hm_off'] = poss_end.hm_off.values
 
     logger.info('computing y')
-    y = combined_df.groupby('poss_id').pts.sum()
+    y = combined_df.groupby('poss_id').pts.sum().values
     season_min = poss_end.season.min()
     weights = np.where(poss_end.season == season_min, 1, weight)
 
-    lr = linear_model.SGDRegressor(loss='squared_loss', penalty='l2',
-                                   average=True)
-    grid = [{
-        'learning_rate': ['invscaling'],
-        'alpha': [1e-5, 1e-4, 1e-3, 1e-2],
-        'eta0': [.0005, .001, .01, .1],
-        'power_t': [.001, .05, 0.1, 0.15]
-    }, {
-        'learning_rate': ['constant'],
-        'alpha': [1e-4, 1e-3, 1e-2, 1e-1],
-        'eta0': [.0005, .001, .01, .1]
-    }]
+    lr = linear_model.SGDRegressor(
+        loss='squared_loss', penalty='l2', learning_rate='invscaling', n_iter=8
+    )
+    grid = {
+        'alpha': [.001, .005, .01, .05],
+        'eta0': [.0001, .0005, .001, .005],
+        'power_t': [0.15, 0.2, 0.25]
+    }
     lr_cv = grid_search.GridSearchCV(
         lr, grid, cv=4, scoring='neg_mean_squared_error',
-        fit_params={'sample_weight': weights},
-        error_score=np.nan, verbose=2, n_jobs=4, pre_dispatch='n_jobs'
+        fit_params={'sample_weight': weights}, error_score=np.nan,
+        n_jobs=4, pre_dispatch='n_jobs', verbose=2
     )
     logger.info('fitting GridSearchCV')
     lr_cv.fit(X, y)

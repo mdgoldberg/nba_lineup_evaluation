@@ -1,9 +1,9 @@
 import numpy as np, pandas as pd
 
-from src.features import build_profiles
+from src.features import helpers, build_profiles
 from sportsref import nba
 
-this_year = build_profiles.get_data(2016)
+this_year = helpers.get_data(2016)
 
 all_players = [col[:-3] for col in nba.pbp.sparse_lineup_cols(this_year)]
 
