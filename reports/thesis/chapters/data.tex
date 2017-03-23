@@ -4,22 +4,23 @@
 \nocite{*}
 
 \newthought{In order to carry out the analysis herein,} it was necessary to gather
-play-by-play data with complete lineups. To do this, I collected the relevant data
-from basketball-reference.com; this site was chosen for several reasons. First, the
-website makes its data freely available and is organized simply and effectively,
-simplifying the scraping process. The second and more important reason the site was
-chosen was because it assigns unique identifiers to each entity for which it has
-data, including players, teams, seasons, coaches, and referees.  Using these unique
-identifiers, it is very easy to cross-reference and join different data sources from
-the site; this makes complex analyses simpler because there it eliminates guesswork
-and ambiguities in data wrangling. For example, while other data sources may have
-ambiguities arising from players with similar names, Basketball Reference's unique
-identifiers make it easy to distinguish between, for example, Tim Hardaway Jr.
-and Tim Hardaway Sr. or Isiah Thomas and Isaiah Thomas.
+play-by-play data with complete lineups. To do this, I collected play-by-play data
+from the past fifteen complete NBA seasons, starting with the 2001-02 season and
+ending with the 2015-16 season. The data was scraped from basketball-reference.com;
+this site was chosen for several reasons. First, the website makes its data freely
+available and is organized simply and effectively, simplifying the scraping process.
+The second and more important reason the site was chosen was because it assigns
+unique identifiers to each entity for which it has data, including players, teams,
+seasons, coaches, and referees.  Using these unique identifiers, it is very easy to
+cross-reference and join different data sources from the site; this makes complex
+analyses simpler because there it eliminates guesswork and ambiguities in data
+wrangling. For example, while other data sources may have ambiguities arising from
+players with similar names, Basketball Reference's unique identifiers make it easy
+to distinguish between, for example, Tim Hardaway Jr.  and Tim Hardaway Sr. or Isiah
+Thomas and Isaiah Thomas.
 
-The data was scraped in Python using the sportsref library, an open-source Python
-library for scraping sports data from the Sports Reference family of
-websites
+The data scraping was done in Python using the sportsref library, an open-source
+Python library for scraping sports data from the Sports Reference family of websites
 \footnote{In addition to basketball-reference.com, this family of websites
 includes sports-reference.com, baseball-reference.com, and
 pro-football-reference.com.}.
@@ -30,9 +31,9 @@ data themselves. The library is still in the early stages of development; its
 code can be found on GitHub
 \footnote{github.com/mdgoldberg/sportsref}.
 
-More specifically, the majority of the data used in this thesis was scraped from
-Basketball Reference's play-by-play section it has for almost every game since the
-beginning of the 2000-2001 NBA season \footnote{For example, see
+More specifically, the data used in this thesis was scraped from Basketball
+Reference's play-by-play section it has for virtually game since the beginning of
+the 2000-2001 NBA season \footnote{For example, see
 www.basketball-reference.com/boxscores/pbp/201604010GSW.html}. This page gives
 detailed text descriptions of each event throughout the game, but does not contain
 structured data to identify, for example, whether an event is a rebound or who the
@@ -107,7 +108,25 @@ given event.
 \end{tabular}
 \end{center}
 
-% TODO: discuss errors in the lineup data, table of results
+It is important to note that Basketball Reference's play-by-play is not official,
+and in some cases there was missing data. For the seasons being used here,
+play-by-play was available for every game, but there were errors in parsing the raw
+data in six games out of the 18,086 games ($0.033\%$) played during the
+fifteen-season span; all of these errors were caused by inconsistent or insufficient
+substitution data in the play-by-play logs, resulting in an inability to determine
+the players on the court for at least one event in the play-by-play. These games
+were simply ignored for the sake of this analysis. Moreover, in order to ensure that
+the data was by-and-large accurate, each player's raw plus/minus was calculated in
+each remaining game based on the lineup data inferred from the play-by-play and
+compared to the raw plus/minus listed in the box score summary provided by
+Basketball Reference. For 92.78\% of the games for which there is complete data,
+there was no difference between any player's computed plus/minus and his official
+plus/minus. In 99.55\% of the games, there is no absolute difference between the
+plus/minus figures that exceeds two points. Finally, in 99.94\% of the games, the
+sum of all players' computed plus/minus was equal to zero, which is a necessary
+condition of correct raw plus/minus data within a game. These figures suggest that
+the vast majority of the data is correct and can be trusted with reasonably high
+confidence.
 
 % \begin{figure}
 % \includegraphics[width=\textwidth]{figures/fig1}

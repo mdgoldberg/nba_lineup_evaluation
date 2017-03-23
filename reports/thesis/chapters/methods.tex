@@ -3,19 +3,44 @@
 \chapter{Methods}
 \label{ch:methods}
 
-TODO: introduce the section/structure?
+\newthought{At a high level, the goal of this analysis} is to determine how
+effective a lineup will be, taking into account the talents and tendencies of all
+ten players on the court. This involves two main steps: first, there must be a
+quantitative representation of each player's abilities and play style. Then, these
+``player profiles'' of the players on the court can be used to predict the outcome
+of each possession, measured in terms of points scored. Therefore, the problem can
+be stated as a regression with each possession as a unit of observation, points
+scored as the response variable, and features describing the play styles of the
+players on the court during the possession as predictors.
+
+In order to quantify play styles for prediction within season $t$, player profiles
+were constructed from play-by-play-based statistics from both season $t-1$ and the
+first half of season $t$; this process is described in section \ref{sec:profiles}.
+Then, these play styles were passed through a dimensionality reduction algorithm in
+order to find latent features that describe a player's play style more succinctly
+and with less multicollinearity; this process is described in section
+\ref{sec:dim_red}. Finally, these dimensionality-reduced features were used to
+predict point outcomes for each possession in the second half of season $t$; this
+process is described in \ref{sec:regress}.
 
 \section{Building Player Profiles Representative of Play Style}
 \label{sec:profiles}
 
-TODO
+* general idea: use first half play to predict second half performance
+    - advantage: more current data, allows rookies to be included
+* also: we need a "replacement player" as a baseline for comparison
+* issue: injuries could result in a player being treated as replacement level
+because he didn't play in the first half
+* solution: use weighted blend of previous year and current year
+    - this incorporates more data and enables us to include injured stars
+* for every statistic, compute last year + weight * first half this year
+    - effectively gives weight/2 weight to this year and 1 weight to last year
+* tech fouls and tech FTA were ignored
+* break features into offense, defense, rebounding, and RAPM
+    - go section by section
 
 \section{Finding Latent Features via Dimensionality Reduction}
 \label{sec:dim_red}
-This is a test
-
-\section{Clustering Latent Features to Create Player Types}
-\label{sec:cluster}
 This is a test
 
 \section{Predicting Point Differential Based on Lineup Composition}

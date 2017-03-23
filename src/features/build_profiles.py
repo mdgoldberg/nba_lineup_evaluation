@@ -128,12 +128,19 @@ def year_profiles(year):
         'lost_ball_pct', 'bad_pass_pct', 'travel_pct', 'off_foul_pct',
         'fg2m_ast_pct', 'fg3m_ast_pct'
     ]
+
+    fga_pct_regions = fga_by_region.divide(fga, axis=0)
+    fga_pct_regions.columns = ['{}_fga_pct'.format(col)
+                               for col in fga_pct_regions.columns]
+
+    fg_pct_regions = fgm_by_region / fga_by_region
+    fg_pct_regions.columns = ['{}_fg_pct'.format(col)
+                              for col in fg_pct_regions.columns]
+
     off_profiles = pd.concat(
-        (off_profiles, fga_by_region.divide(fga, axis=0)), axis=1
+        (off_profiles, fga_pct_regions, fg_pct_regions), axis=1
     ).fillna(0)
-    off_profiles = pd.concat(
-        (off_profiles, fgm_by_region.divide(fga_by_region, axis=0)), axis=1
-    ).fillna(0)
+
 
     # defensive stats
     logger.info('starting defense')
@@ -177,8 +184,6 @@ def year_profiles(year):
         pd.concat((last_year, first_half))
     )
     rapm_profiles = combined_rapm(combined_df, players, reps)
-
-    # TODO: IOT?
 
     logger.info('combining all profiles')
     profiles = pd.concat(
@@ -256,7 +261,6 @@ def get_fga_by_region(df, players, reps):
         'rest_area', 'paint', 'midrange', 'long_two', 'corner_three',
         'reg_three', 'deep_three'
     ]
-    all_df.columns = ['{}_fga_pct'.format(col) for col in all_df.columns]
     players_df = all_df.ix[players].fillna(0)
     players_df.ix['RP'] = all_df.ix[reps].fillna(0).sum(axis=0)
     return players_df
@@ -282,7 +286,6 @@ def get_fgm_by_region(df, players, reps):
         'rest_area', 'paint', 'midrange', 'long_two', 'corner_three',
         'reg_three', 'deep_three'
     ]
-    all_df.columns = ['{}_fg_pct'.format(col) for col in all_df.columns]
     players_df = all_df.ix[players].fillna(0)
     players_df.ix['RP'] = all_df.ix[reps].fillna(0).sum(axis=0)
     return players_df
