@@ -580,7 +580,7 @@ def combined_rapm(combined_df, players, reps, weight=6):
         loss='squared_loss', penalty='l2', learning_rate='invscaling', n_iter=8
     )
     grid = {
-        'alpha': [.005, .01, .05, .1],
+        'alpha': [.01, .05, .1, .15],
         'eta0': [.0001, .0005, .001, .005],
         'power_t': [0.15, 0.2, 0.25]
     }
