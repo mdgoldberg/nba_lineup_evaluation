@@ -93,6 +93,8 @@ def year_profiles(year):
     fga = combine_stat(get_tot_fga, last_year, first_half, players, reps)
     fga_by_region = combine_stat(get_fga_by_region, last_year, first_half,
                                  players, reps)
+    fgm_by_region = combine_stat(get_fgm_by_region, last_year, first_half,
+                                 players, reps)
     asts = combine_stat(get_ast, last_year, first_half, players, reps)
     tm_fgm = combine_stat(get_teammate_fgm, last_year, first_half,
                           players, reps)
@@ -126,8 +128,12 @@ def year_profiles(year):
         'lost_ball_pct', 'bad_pass_pct', 'travel_pct', 'off_foul_pct',
         'fg2m_ast_pct', 'fg3m_ast_pct'
     ]
-    off_profiles = pd.concat((off_profiles, fga_by_region.divide(fga, axis=0)),
-                             axis=1).fillna(0)
+    off_profiles = pd.concat(
+        (off_profiles, fga_by_region.divide(fga, axis=0)), axis=1
+    ).fillna(0)
+    off_profiles = pd.concat(
+        (off_profiles, fgm_by_region.divide(fga_by_region, axis=0)), axis=1
+    ).fillna(0)
 
     # defensive stats
     logger.info('starting defense')
@@ -157,7 +163,7 @@ def year_profiles(year):
     drb_opp = combine_stat(get_drb_opps, last_year, first_half, players, reps)
 
     # rebounding features
-    logger.info('defensive features')
+    logger.info('rebounding features')
     reb_profiles = pd.concat((
         orb/orb_opp, drb/drb_opp
     ), axis=1).fillna(0)
@@ -243,7 +249,7 @@ def get_fga_by_region(df, players, reps):
         'is_three & (26 < shot_dist <= 30)',  # deep 3's
     ]
     counts = [
-        df.query(cond).shooter.value_counts()
+        shots.query(cond).shooter.value_counts()
         for cond in conditions
     ]
     all_df = pd.concat(counts, axis=1)
@@ -251,6 +257,33 @@ def get_fga_by_region(df, players, reps):
         'rest_area', 'paint', 'midrange', 'long_two', 'corner_three',
         'reg_three', 'deep_three'
     ]
+    all_df.columns = ['{}_fga_pct'.format(col) for col in all_df.columns]
+    players_df = all_df.ix[players].fillna(0)
+    players_df.ix['RP'] = all_df.ix[reps].fillna(0).sum(axis=0)
+    return players_df
+
+
+def get_fgm_by_region(df, players, reps):
+    shots_made = df.ix[df.is_fgm]
+    conditions = [
+        '~is_three & (shot_dist <= 4)',  # restricted area
+        '~is_three & (4 < shot_dist <= 8)',  # rest of paint
+        '~is_three & (8 < shot_dist <= 16)',  # mid-range
+        '~is_three & (16 < shot_dist)',  # long twos
+        'is_three & (shot_dist <= 23)',  # corner 3's
+        'is_three & (23 < shot_dist <= 26)',  # regular 3's
+        'is_three & (26 < shot_dist <= 30)',  # deep 3's
+    ]
+    counts = [
+        shots_made.query(cond).shooter.value_counts()
+        for cond in conditions
+    ]
+    all_df = pd.concat(counts, axis=1)
+    all_df.columns = [
+        'rest_area', 'paint', 'midrange', 'long_two', 'corner_three',
+        'reg_three', 'deep_three'
+    ]
+    all_df.columns = ['{}_fg_pct'.format(col) for col in all_df.columns]
     players_df = all_df.ix[players].fillna(0)
     players_df.ix['RP'] = all_df.ix[reps].fillna(0).sum(axis=0)
     return players_df
