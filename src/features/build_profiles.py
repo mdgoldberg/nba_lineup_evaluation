@@ -578,14 +578,13 @@ def combined_rapm(combined_df, players, reps, weight=6):
         loss='squared_loss', penalty='l2', learning_rate='invscaling', n_iter=8
     )
     grid = {
-        'alpha': [.001, .005, .01, .05],
+        'alpha': [.005, .01, .05, .1],
         'eta0': [.0001, .0005, .001, .005],
         'power_t': [0.15, 0.2, 0.25]
     }
     lr_cv = grid_search.GridSearchCV(
         lr, grid, cv=4, scoring='neg_mean_squared_error',
         fit_params={'sample_weight': weights}, error_score=np.nan,
-        n_jobs=4, pre_dispatch='n_jobs', verbose=2
     )
     logger.info('fitting GridSearchCV')
     lr_cv.fit(X, y)
@@ -606,4 +605,4 @@ def combined_rapm(combined_df, players, reps, weight=6):
     ])
     coefs = coefs.unstack(level=1)
 
-    return X, y, lr_cv, coefs
+    return coefs
