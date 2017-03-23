@@ -66,9 +66,9 @@ def year_profiles(year):
     """
     logger = get_logger()
 
-    this_year = helpers.get_data(year)
-    last_year = helpers.get_data(year-1)
-    first_half, _ = helpers.split_data(this_year)
+    this_year = helpers.get_pbp_data(year)
+    last_year = helpers.get_pbp_data(year-1)
+    first_half, _ = helpers.split_pbp_data(this_year)
 
     all_pcols = (nba.pbp.sparse_lineup_cols(first_half) +
                    nba.pbp.sparse_lineup_cols(last_year))
