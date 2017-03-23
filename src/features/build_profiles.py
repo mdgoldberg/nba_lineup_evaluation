@@ -10,7 +10,7 @@ from sklearn import linear_model, grid_search, metrics
 
 from sportsref import nba, decorators
 from src.data import pbp_fetch_data
-from src.features import helpers
+from src import helpers
 
 env_path = dotenv.find_dotenv()
 dotenv.load_dotenv(env_path)
