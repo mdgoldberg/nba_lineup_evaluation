@@ -190,7 +190,9 @@ def year_profiles(year):
         (off_profiles, def_profiles, reb_profiles, rapm_profiles),
         axis=1
     )
-    profiles.index = [(p, year) for p in profiles.index]
+    profiles.index = pd.MultiIndex.from_tuples(
+        [(p, year) for p in profiles.index]
+    )
 
     return profiles
 
