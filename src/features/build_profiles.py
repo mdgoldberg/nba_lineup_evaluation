@@ -37,7 +37,7 @@ class YearProfiles(luigi.Task):
 
     def output(self):
         path = os.path.join(
-            PROJ_DIR, 'data', 'interim', 'profiles_{}.csv'.format(self.year)
+            PROJ_DIR, 'data', 'profiles', 'profiles_{}.csv'.format(self.year)
         )
         return luigi.LocalTarget(path)
 

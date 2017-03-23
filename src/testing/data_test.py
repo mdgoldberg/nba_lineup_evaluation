@@ -70,7 +70,7 @@ def year_summaries(year):
     :returns: DataFrame of results
     """
     year_df = pd.read_csv(
-        os.path.join(DATA_DIR, 'raw', 'pbp_{}.csv'.format(year))
+        os.path.join(DATA_DIR, 'pbp', 'pbp_{}.csv'.format(year))
     )
     summ = year_df.groupby('boxscore_id').apply(summary)
     all_bsids = nba.Season(year).schedule().boxscore_id.values

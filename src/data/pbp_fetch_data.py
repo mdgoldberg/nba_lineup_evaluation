@@ -64,7 +64,7 @@ class PBPYearFetcher(luigi.Task):
 
     def output(self):
         path = os.path.join(
-            DATA_DIR, 'raw', 'pbp_{}.csv'.format(self.year)
+            DATA_DIR, 'pbp', 'pbp_{}.csv'.format(self.year)
         )
         return luigi.LocalTarget(path)
 

@@ -14,7 +14,7 @@ PROJ_DIR = os.environ['PROJ_DIR']
 @decorators.memoize
 def get_data(yr):
     df = pd.read_csv(
-        os.path.join(PROJ_DIR, 'data', 'raw', 'pbp_{}.csv'.format(yr))
+        os.path.join(PROJ_DIR, 'data', 'pbp', 'pbp_{}.csv'.format(yr))
     )
     df.query('~(is_tech_foul | is_tech_fta)', inplace=True)
     return df
