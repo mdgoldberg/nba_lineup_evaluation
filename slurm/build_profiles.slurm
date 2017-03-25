@@ -2,10 +2,10 @@
 
 #SBATCH -p general
 #SBATCH -J build_profiles
-#SBATCH -n 7
+#SBATCH -n 5
 #SBATCH -N 1
 #SBATCH -t 1-00:00
-#SBATCH --mem-per-cpu 35000
+#SBATCH --mem-per-cpu 30000
 #SBATCH -o logs/build_profiles.out
 #SBATCH -e logs/build_profiles.err
 
@@ -18,4 +18,5 @@ mkdir -p data/processed
 
 luigid --logdir logs --background
 
-PYTHONPATH='.' luigi --module src.features.build_profiles RangeProfiles --start-year 2003 --end-year 2016 --workers 7
+PYTHONPATH='.' luigi --module src.features.build_profiles RangeProfiles \
+    --start-year 2007 --end-year 2016 --workers 5

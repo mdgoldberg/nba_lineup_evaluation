@@ -17,4 +17,5 @@ source activate thesis
 mkdir -p data/raw
 
 luigid --logdir logs --background
-PYTHONPATH='.' luigi --module src.data.pbp_fetch_data PBPRangeFetcher --start-year 2002 --end-year 2016 --workers 4
+PYTHONPATH='.' luigi --module src.data.pbp_fetch_data PBPRangeFetcher \
+    --start-year 2006 --end-year 2016 --workers 4

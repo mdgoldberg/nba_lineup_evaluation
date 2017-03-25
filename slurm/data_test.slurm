@@ -2,7 +2,7 @@
 
 #SBATCH -p general
 #SBATCH -J data_test
-#SBATCH -n 15
+#SBATCH -n 11
 #SBATCH -N 1
 #SBATCH -t 0-02:00
 #SBATCH --mem-per-cpu 7000

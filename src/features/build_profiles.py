@@ -1,4 +1,5 @@
 import logging
+import logging.config
 import os
 import time
 
@@ -6,7 +7,7 @@ import dotenv
 import luigi
 import numpy as np
 import pandas as pd
-from sklearn import linear_model, grid_search, metrics
+from sklearn import linear_model, model_selection, metrics
 
 from sportsref import nba, decorators
 from src.data import pbp_fetch_data
@@ -587,7 +588,7 @@ def combined_rapm(combined_df, players, reps, weight=6):
         'eta0': [.0001, .0005, .001, .005],
         'power_t': [0.15, 0.2, 0.25]
     }
-    lr_cv = grid_search.GridSearchCV(
+    lr_cv = model_selection.GridSearchCV(
         lr, grid, cv=4, scoring='neg_mean_squared_error',
         fit_params={'sample_weight': weights}, error_score=np.nan,
     )

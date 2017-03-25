@@ -1,4 +1,5 @@
 import logging
+import logging.config
 import multiprocessing as mp
 import os
 
@@ -81,8 +82,9 @@ def year_summaries(year):
 
 
 if __name__ == '__main__':
-    p = mp.Pool(mp.cpu_count()-1)
-    yr_summs = p.map(year_summaries, range(2002, 2017))
+    years = range(2006, 2017)
+    p = mp.Pool(len(years))
+    yr_summs = p.map(year_summaries, years)
     p.close()
 
     all_summs = pd.concat(yr_summs)
