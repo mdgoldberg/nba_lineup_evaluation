@@ -60,11 +60,9 @@ def get_logger():
 
 
 def _design_matrix_one_season(args):
-    lineups, profiles, seasons, rapm, hm_off, season = args
-    sub_profs = profiles.xs(season, level=1)
-    sub_rapm = rapm.xs(season, level=1)
-    hm_lineups = lineups.ix[seasons == season, nba.pbp.HM_LINEUP_COLS]
-    aw_lineups = lineups.ix[seasons == season, nba.pbp.AW_LINEUP_COLS]
+    lineups, sub_profs, sub_rapm, sub_hm_off = args
+    hm_lineups = lineups.ix[:, nba.pbp.HM_LINEUP_COLS]
+    aw_lineups = lineups.ix[:, nba.pbp.AW_LINEUP_COLS]
     rp_val = sub_rapm.loc['RP']
     hm_rapm = hm_lineups.applymap(lambda p: sub_rapm.get(p, rp_val))
     aw_rapm = aw_lineups.applymap(lambda p: sub_rapm.get(p, rp_val))
@@ -76,35 +74,45 @@ def _design_matrix_one_season(args):
     aw_lineups = aw_lineups.apply(
         lambda r: r[aw_rapm_idxs.loc[r.name]].values, axis=1
     )
-    merged_df = pd.concat((hm_lineups, aw_lineups), axis=1)
-    for line_col in nba.pbp.ALL_LINEUP_COLS:
+    hm_off_df = pd.concat((hm_lineups[sub_hm_off], aw_lineups[sub_hm_off]),
+                           axis=1)
+    aw_off_df = pd.concat((aw_lineups[~sub_hm_off], hm_lineups[~sub_hm_off]),
+                           axis=1)
+    cols = ['{}_player{}'.format(tm, i)
+            for tm in ['off', 'def'] for i in range(1, 6)]
+    hm_off_df.columns = cols
+    aw_off_df.columns = cols
+    merged_df = pd.concat((hm_off_df, aw_off_df))
+    n_hm_off = len(hm_off_df)
+    merged_df['hm_off'] = [i < n_hm_off for i in range(len(merged_df))]
+    for col in cols:
         sub_profs.columns = [
-            '{}_{}'.format(i, line_col)
-            for i in range(sub_profs.shape[1])
+            '{}_{}'.format(i, col) for i in range(sub_profs.shape[1])
         ]
         merged_df = pd.merge(
             merged_df, sub_profs, how='left',
-            left_on=line_col, right_index=True
+            left_on=col, right_index=True
         ).fillna(sub_profs.loc['RP'])
 
-    merged_df.drop(nba.pbp.ALL_LINEUP_COLS, axis=1, inplace=True)
+    merged_df.drop(cols, axis=1, inplace=True)
     return merged_df
 
 
 def create_design_matrix(lineups, profiles, seasons, rapm, hm_off):
     prof_cols = profiles.columns
-    seasons_uniq = seasons.unique()
+    seasons_uniq = np.unique(seasons)
     pool = mp.Pool(min(n_jobs, len(seasons_uniq)))
     args_to_eval = [
-        (lineups, profiles, seasons, rapm, hm_off, s)
+        (lineups[seasons == s], profiles.xs(s, level=1), rapm.xs(s, level=1),
+         hm_off[seasons == s])
         for s in seasons_uniq
     ]
     dfs = pool.map(_design_matrix_one_season, args_to_eval)
-    return pd.concat(dfs).assign(hm_off=hm_off)
+    return pd.concat(dfs)
 
 
 logger = get_logger()
-logger.info(n_jobs)
+logger.info('n_jobs: {}'.format(n_jobs))
 seasons_train, seasons_test = model_selection.train_test_split(
     seasons, train_size=0.7, test_size=0.3
 )
