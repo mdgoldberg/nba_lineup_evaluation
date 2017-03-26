@@ -4,13 +4,13 @@ import logging.config
 import multiprocessing as mp
 import os
 
-from dask import bag as db
+import dask
+from dask import delayed
 import dotenv
 import numpy as np
 import pandas as pd
-from sklearn import (base, decomposition, ensemble, linear_model, manifold,
+from sklearn import (base, decomposition, ensemble, linear_model,
                      model_selection, preprocessing)
-import xgboost as xgb
 
 from sportsref import nba
 
@@ -21,58 +21,32 @@ dotenv.load_dotenv(env_path)
 PROJ_DIR = os.environ['PROJ_DIR']
 n_jobs = os.environ.get('SLURM_NTASKS', mp.cpu_count()-1)
 
-seasons = range(2012, 2017)
+seasons = range(2014, 2017)
 
 dr_ests = {
-    'kernel_pca': decomposition.KernelPCA(),
-    'lle': manifold.LocallyLinearEmbedding(n_jobs=n_jobs),
-    'isomap': manifold.Isomap(n_jobs=n_jobs)
+    'pca': decomposition.PCA(n_components=10),
+    'kernel_pca': decomposition.KernelPCA(n_components=10)
 }
 dr_param_grids = {
-    'kernel_pca': [
-        {
-            'kernel': ['linear'],
-            'n_components': [5, 10]
-        },
-        {
-            'kernel': ['rbf'],
-            'n_components': [5, 10],
-            'gamma': np.logspace(-3, 0, 4)
-        }
-    ],
-    'lle': [
-        {
-            'method': ['modified'],
-            'n_neighbors': [11, 20, 50],
-            'n_components': [5, 10],
-        },
-        {
-            'method': ['ltsa'],
-            'n_neighbors': [10, 20, 50],
-            'n_components': [5, 10]
-        }
-    ],
-    'isomap': {
-        'n_components': [5, 10],
-        'n_neighbors': [10, 20, 50],
+    'pca': {},
+    'kernel_pca': {
+        'kernel': ['rbf'],
+        'gamma': np.logspace(-3, 0, 4)
     }
 }
 reg_ests = {
     'lin_reg': linear_model.LinearRegression(),
-    'rf': ensemble.RandomForestRegressor(verbose=1, n_jobs=n_jobs),
-    'gb': ensemble.GradientBoostingRegressor(verbose=1)
+    'rf': ensemble.RandomForestRegressor(n_jobs=n_jobs, n_estimators=100),
+    'gb': ensemble.GradientBoostingRegressor(n_estimators=100)
 }
 reg_param_grids = {
     'lin_reg': {},
     'rf': {
-        'n_estimators': [200],
-        'max_depth': [5],
+        'max_depth': [3, 4, 5],
     },
     'gb': {
         'learning_rate': [.001, .01, .1],
-        'n_estimators': [200],
         'max_depth': [3, 4, 5],
-        'subsample': [.75, 1.]
     }
 }
 
@@ -205,8 +179,9 @@ for dr_name, dr_est in dr_ests.items():
                 reg_est.set_params(**reg_params)
                 logger.info('starting training for one param grid point...')
                 cv_score = np.mean(model_selection.cross_val_score(
-                    reg_est, X_train, y_train, cv=3, groups=poss_year_train,
-                    scoring='neg_mean_squared_error', verbose=2
+                        reg_est, X_train, y_train, cv=3,
+                        groups=poss_year_train,
+                        scoring='neg_mean_squared_error'
                 ))
                 results_row = {
                     'dim_red': dr_name,
@@ -215,9 +190,8 @@ for dr_name, dr_est in dr_ests.items():
                 }
                 results_row.update(dr_params)
                 results_row.update(reg_params)
-                logger.info(results_row)
+                logging.info(results_row)
                 results.append(results_row)
-
 
 res_df = pd.DataFrame(results)
 logging.info(res_df.sort_values('score').head(5))
