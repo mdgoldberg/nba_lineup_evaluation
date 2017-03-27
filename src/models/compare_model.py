@@ -124,33 +124,33 @@ y_train = y[pbp_is_train]
 y_test = y[~pbp_is_train]
 
 # fit model on training data
-# logging.info('starting create_design_matrix for train')
+logging.info('starting create_design_matrix for train')
 X_train = create_design_matrix(
     lineups_train, orapm, drapm, poss_year_train, hm_off_train
 )
-# logging.info('done with create_design_matrix for train')
-# logging.info('starting to fit regression model')
+logging.info('done with create_design_matrix for train')
+logging.info('starting to fit regression model')
 reg_est.fit(X_train, y_train)
-# logging.info('done fitting regression model')
+logging.info('done fitting regression model')
 
 # score model on test data
-# logging.info('starting create_design_matrix for test')
+logging.info('starting create_design_matrix for test')
 X_test = create_design_matrix(
     lineups_test, orapm, drapm, poss_year_test, hm_off_test
 )
-# logging.info('done with create_design_matrix for test')
-# logging.info('predicting on X_test')
+logging.info('done with create_design_matrix for test')
+logging.info('predicting on X_test')
 predictions = reg_est.predict(X_test)
-# logging.info('done predicting on X_test')
-# logging.info('generating metrics')
+logging.info('done predicting on X_test')
+logging.info('generating metrics')
 
 rmse = metrics.mean_squared_error(y_test, predictions)
 r2 = metrics.r2_score(y_test, predictions)
 mae = metrics.median_absolute_error(y_test, predictions)
 
-# logging.info('RMSE: {}'.format(rmse))
-# logging.info('R^2: {}'.format(r2))
-# logging.info('median abs err: {}'.format(mae))
+logging.info('RMSE: {}'.format(rmse))
+logging.info('R^2: {}'.format(r2))
+logging.info('median abs err: {}'.format(mae))
 
 perf_metrics = pd.Series({
     'rmse': rmse,
