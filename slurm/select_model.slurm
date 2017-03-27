@@ -14,6 +14,6 @@ module load git python/2.7.13-fasrc01
 
 source activate thesis
 
-mkdir -p data/testing
+mkdir -p data/models
 
 python -m src.models.select_model
