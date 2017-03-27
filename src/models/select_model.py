@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 from sklearn import (base, decomposition, ensemble, linear_model,
                      model_selection, preprocessing)
+import xgboost as xgb
 
 from sportsref import nba
 
@@ -19,34 +20,42 @@ from src import helpers
 env_path = dotenv.find_dotenv()
 dotenv.load_dotenv(env_path)
 PROJ_DIR = os.environ['PROJ_DIR']
-n_jobs = os.environ.get('SLURM_NTASKS', mp.cpu_count()-1)
+n_jobs = int(os.environ.get('SLURM_NTASKS', mp.cpu_count()-1))
 
-seasons = range(2014, 2017)
+seasons = range(2011, 2015) # 10-11, 11-12, 12-13, 13-14
 
 dr_ests = {
-    'pca': decomposition.PCA(n_components=10),
-    'kernel_pca': decomposition.KernelPCA(n_components=10)
+    'pca': decomposition.PCA(),
+    'isomap': manifold.Isomap(n_jobs=n_jobs),
+    'lle': manifold.LocallyLinearEmbedding(n_jobs=n_jobs)
 }
 dr_param_grids = {
-    'pca': {},
-    'kernel_pca': {
-        'kernel': ['rbf'],
-        'gamma': np.logspace(-3, 0, 4)
+    'pca': {
+        'n_components': [0.5, 0.7]
+    },
+    'isomap': {
+        'n_components': [5, 10],
+        'n_neighbors': [10, 50, 100]
+    },
+    'lle': {
+        'n_components': [5, 10],
+        'n_neighbors': [10, 50, 100]
     }
 }
 reg_ests = {
     'lin_reg': linear_model.LinearRegression(),
-    'rf': ensemble.RandomForestRegressor(n_jobs=n_jobs, n_estimators=100),
-    'gb': ensemble.GradientBoostingRegressor(n_estimators=100)
+    'rf': ensemble.RandomForestRegressor(n_jobs=n_jobs, n_estimators=200),
+    'gb': xgb.XGBRegressor(nthreads=n_jobs)
 }
 reg_param_grids = {
     'lin_reg': {},
     'rf': {
-        'max_depth': [3, 4, 5],
+        'max_depth': [3, 4, 5]
     },
     'gb': {
-        'learning_rate': [.001, .01, .1],
+        'learning_rate': [.0001, .001, .01],
         'max_depth': [3, 4, 5],
+        'n_estimators': [100, 200, 300]
     }
 }
 
@@ -107,15 +116,12 @@ def create_design_matrix(lineups, profiles, seasons, rapm, hm_off):
          hm_off[seasons == s])
         for s in seasons_uniq
     ]
-    dfs = pool.map(_design_matrix_one_season, args_to_eval)
+    dfs = [_design_matrix_one_season(args) for args in  args_to_eval]
     return pd.concat(dfs)
 
 
 logger = get_logger()
 logger.info('n_jobs: {}'.format(n_jobs))
-seasons_train, seasons_test = model_selection.train_test_split(
-    seasons, train_size=0.7, test_size=0.3
-)
 
 # load and combine all player-season profiles and standardize within season
 logger.info('loading profiles...')
@@ -145,41 +151,25 @@ lineups = poss_end.loc[:, nba.pbp.ALL_LINEUP_COLS]
 poss_seasons = poss_end.loc[:, 'season']
 del all_second_half, poss_grouped, poss_end
 
-# split lineups data into train and test
-pbp_is_train = poss_seasons.isin(seasons_train)
-lineups_train = lineups[pbp_is_train]
-lineups_test = lineups[~pbp_is_train]
-poss_year_train = poss_seasons[pbp_is_train]
-poss_year_test = poss_seasons[~pbp_is_train]
-hm_off_train = poss_hm_off[pbp_is_train]
-hm_off_test = poss_hm_off[~pbp_is_train]
-y_train = y[pbp_is_train]
-y_test = y[~pbp_is_train]
-
-# split profiles data into train and test
-prof_is_train = profiles_scaled.index.get_level_values(1).isin(seasons_train)
-profiles_train = profiles_scaled[prof_is_train]
-profiles_test = profiles_scaled[~prof_is_train]
 
 logger.info('starting CV...')
 results = []
 for dr_name, dr_est in dr_ests.items():
+    logging.info('starting DR: {}'.format(dr_name))
     dr_param_grid = model_selection.ParameterGrid(dr_param_grids[dr_name])
     for dr_params in dr_param_grid:
         dr_est.set_params(**dr_params)
-        dr_est.fit(profiles_train)
-        latent_train = pd.DataFrame(
-            dr_est.transform(profiles_train), index=profiles_train.index
+        dr_est.fit(profiles_scaled)
+        latent_profs = pd.DataFrame(
+            dr_est.transform(profiles_scaled), index=profiles_scaled.index
         )
-        latent_test = pd.DataFrame(
-            dr_est.transform(profiles_test), index=profiles_test.index
-        )
-        logging.info('starting create_design_matrix for train')
-        X_train = create_design_matrix(
-            lineups_train, latent_train, poss_year_train, rapm, hm_off_train
+        logging.info('starting create_design_matrix')
+        X = create_design_matrix(
+            lineups, latent_profs, poss_seasons, rapm, poss_hm_off
         )
         logging.info('done with create_design_matrix for train')
         for reg_name, reg_est in reg_ests.items():
+            logging.info('starting regression: {}'.format(reg_name))
             reg_params_grid = model_selection.ParameterGrid(
                 reg_param_grids[reg_name]
             )
@@ -187,9 +177,8 @@ for dr_name, dr_est in dr_ests.items():
                 reg_est.set_params(**reg_params)
                 logger.info('starting training for one param grid point...')
                 cv_score = np.mean(model_selection.cross_val_score(
-                        reg_est, X_train, y_train, cv=3,
-                        groups=poss_year_train,
-                        scoring='neg_mean_squared_error'
+                    reg_est, X, y, cv=4, groups=poss_seasons,
+                    scoring='neg_mean_squared_error'
                 ))
                 results_row = {
                     'dim_red': dr_name,
@@ -202,5 +191,5 @@ for dr_name, dr_est in dr_ests.items():
                 results.append(results_row)
 
 res_df = pd.DataFrame(results)
-logging.info(res_df.sort_values('score').head(5))
-res_df.to_csv('data/testing/reg_results.csv', index_label=False)
+logging.info(res_df.sort_values('score').tail(5))
+res_df.to_csv('data/models/selection_results.csv', index_label=False)
