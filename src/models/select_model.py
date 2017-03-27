@@ -9,8 +9,8 @@ from dask import delayed
 import dotenv
 import numpy as np
 import pandas as pd
-from sklearn import (base, decomposition, ensemble, linear_model,
-                     model_selection, preprocessing)
+from sklearn import (decomposition, ensemble, linear_model, manifold,
+                     model_selection)
 import xgboost as xgb
 
 from sportsref import nba
@@ -45,7 +45,7 @@ dr_param_grids = {
 reg_ests = {
     'lin_reg': linear_model.LinearRegression(),
     'rf': ensemble.RandomForestRegressor(n_jobs=n_jobs, n_estimators=200),
-    'gb': xgb.XGBRegressor(nthreads=n_jobs)
+    'gb': xgb.XGBRegressor()
 }
 reg_param_grids = {
     'lin_reg': {},
