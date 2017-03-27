@@ -45,7 +45,7 @@ dr_param_grids = {
 reg_ests = {
     'lin_reg': linear_model.LinearRegression(),
     'rf': ensemble.RandomForestRegressor(n_jobs=n_jobs, n_estimators=200),
-    'gb': xgb.XGBRegressor()
+    'gb': xgb.XGBRegressor(n_estimators=200)
 }
 reg_param_grids = {
     'lin_reg': {},
@@ -55,7 +55,6 @@ reg_param_grids = {
     'gb': {
         'learning_rate': [.0001, .001, .01],
         'max_depth': [3, 4, 5],
-        'n_estimators': [100, 200, 300]
     }
 }
 
@@ -69,8 +68,6 @@ def get_logger():
 
 
 def _design_matrix_one_season(args):
-    logger = get_logger()
-    logger.info('starting _design_matrix_one_season')
     lineups, sub_profs, sub_rapm, sub_hm_off = args
     hm_lineups = lineups.ix[:, nba.pbp.HM_LINEUP_COLS]
     aw_lineups = lineups.ix[:, nba.pbp.AW_LINEUP_COLS]
@@ -112,7 +109,7 @@ def _design_matrix_one_season(args):
 def create_design_matrix(lineups, profiles, seasons, rapm, hm_off):
     prof_cols = profiles.columns
     seasons_uniq = np.unique(seasons)
-    pool = mp.Pool(4)
+    pool = mp.Pool(min(4, n_jobs))
     args_to_eval = [
         (lineups[seasons == s], profiles.xs(s, level=1), rapm.xs(s, level=1),
          hm_off[seasons == s])
