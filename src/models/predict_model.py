@@ -33,31 +33,44 @@ latent_profiles = pd.DataFrame(
 print 'Done loading profiles!'
 
 
-def expected_pd(hm_players, aw_players, hm_off, season):
-    players = np.concatenate((hm_players, aw_players)).reshape(1, -1)
-    lineups = pd.DataFrame(
-        players, columns=nba.pbp.HM_LINEUP_COLS + nba.pbp.AW_LINEUP_COLS
-    )
-    hm_off = pd.Series([hm_off])
-    seasons = pd.Series([season])
-    X_off = train_model.create_design_matrix(
-        lineups, latent_profiles, seasons, rapm, hm_off
-    )
-    X_def = train_model.create_design_matrix(
-        lineups, latent_profiles, seasons, rapm, ~hm_off
-    )
-    return 100. * (reg_model.predict(X_off) - reg_model.predict(X_def))
+def expected_pd(off_players, def_players, season):
+    rp_val = rapm.loc['RP', season]
+    off_rapm = [rapm.get((op, season), rp_val) for op in off_players]
+    def_rapm = [rapm.get((dp, season), rp_val) for dp in def_players]
+    off_players = np.array(off_players)[np.argsort(off_rapm)][::-1]
+    def_players = np.array(def_players)[np.argsort(def_rapm)][::-1]
+    import ipdb; ipdb.set_trace()
+    off_feats = pd.DataFrame(pd.concat([
+        latent_profiles.loc[op, season]
+        if (op, season) in latent_profiles.index else
+        latent_profiles.loc['RP', season]
+        for op in off_players
+    ], axis=1)).T
+    def_feats = pd.DataFrame(pd.concat([
+        latent_profiles.loc[dp, season]
+        if (dp, season) in latent_profiles.index else
+        latent_profiles.loc['RP', season]
+        for dp in def_players
+    ], axis=1)).T
+    import ipdb; ipdb.set_trace()
+    X_off = pd.concat((off_feats, def_feats), axis=1)
+    X_off['hm_off'] = True
+    X_def = pd.concat((def_feats, off_feats), axis=1)
+    X_def['hm_off'] = True
+    import ipdb; ipdb.set_trace()
+
+    return 100. * (reg_model.predict(X_off)[0] - reg_model.predict(X_def)[0])
 
 
 def evaluate_player(player, season):
-    hm_lineup = [player, 'RP', 'RP', 'RP', 'RP']
-    aw_lineup = ['RP' for _ in range(5)]
-    return expected_pd(hm_lineup, aw_lineup, True, season)
+    off_lineup = [player, 'RP', 'RP', 'RP', 'RP']
+    def_lineup = ['RP' for _ in range(5)]
+    return expected_pd(off_lineup, def_lineup, season)
 
 
 def evaluate_lineup(lineup, season):
-    aw_lineup = ['RP' for _ in range(5)]
-    return expected_pd(lineup, aw_lineup, True, season)
+    def_lineup = ['RP' for _ in range(5)]
+    return expected_pd(lineup, def_lineup, season)
 
 
 def evaluate_game(bsid):
@@ -70,14 +83,14 @@ def evaluate_game(bsid):
     aw_starters = aw_players[stats.is_starter]
     home, away = bs.home(), bs.away()
     true_pd = bs.home_score() - bs.away_score()
-    exp_pd = expected_pd(hm_starters, aw_starters, True, season)
+    exp_pd = expected_pd(hm_starters, aw_starters, season)
 
     best_hm_pd = max(
-        expected_pd(hm_lineup, aw_starters, True, season)
+        expected_pd(hm_lineup, aw_starters, season)
         for hm_lineup in itertools.combinations(hm_players, 5)
     )
     best_aw_pd = max(
-        expected_pd(hm_starters, aw_lineup, True, season)
+        expected_pd(aw_lineup, hm_starters, season)
         for aw_lineup in itertools.combinations(aw_players, 5)
     )
 
@@ -155,8 +168,8 @@ def year_off_def_matrix(year, trade=None):
         starters2 = get_starters(team2, year)
         starters1, starters2 = process_trade(team1, team2, starters1,
                                              starters2, trade)
-        pd_12 = expected_pd(starters1, starters2, True, year)
-        pd_21 = expected_pd(starters2, starters1, True, year)
+        pd_12 = expected_pd(starters1, starters2, year)
+        pd_21 = expected_pd(starters2, starters1, year)
         idx1 = team_idxs[team1]
         idx2 = team_idxs[team2]
         grid[idx1, idx2] = pd_12
