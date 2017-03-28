@@ -16,6 +16,7 @@ dr_model = joblib.load('models/dr_model.pkl')
 reg_model = joblib.load('models/regression_model.pkl')
 
 # 1. load regular profiles and compute RAPM for each player
+print 'Please wait while loading profiles...'
 profile_dfs = [
     helpers.get_profiles_data(season) for season in range(2007, 2017)
 ]
@@ -29,6 +30,7 @@ profiles_scaled = (
 latent_profiles = pd.DataFrame(
     dr_model.transform(profiles_scaled), index=profiles_scaled.index
 )
+print 'Done loading profiles!'
 
 
 def expected_pd(hm_players, aw_players, hm_off, season):
