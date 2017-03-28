@@ -60,11 +60,6 @@ def evaluate_lineup(lineup, season):
     return expected_pd(lineup, aw_lineup, True, season)
 
 
-@decorators.memoize
-def get_pbp_data_wrapper(year):
-    return helpers.get_pbp_data(year)
-
-
 def evaluate_game(bsid):
     bs = nba.BoxScore(bsid)
     season = bs.season()
@@ -110,7 +105,7 @@ def evaluate_team_schedule(team_id, year):
     return res_df.ix[:, cols]
 
 
-@decorators.memoized
+@decorators.memoize
 def get_starters(team_id, year):
     start_counter = Counter()
     for bs_id in nba.Team(team_id).schedule(year).boxscore_id.values:
