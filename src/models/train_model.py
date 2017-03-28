@@ -92,100 +92,106 @@ def create_design_matrix(lineups, profiles, seasons, rapm, hm_off):
     return pd.concat(dfs)
 
 
-logger = get_logger()
-logger.info('n_jobs: {}'.format(n_jobs))
+if __name__ == '__main__':
 
-# load and combine all player-season profiles and standardize within season
-logger.info('loading profiles...')
-profile_dfs = [
-    helpers.get_profiles_data(season) for season in seasons
-]
-profile_df = pd.concat(profile_dfs)
-rapm = profile_df.loc[:, ['orapm', 'drapm']].sum(axis=1)
-profiles_scaled = (
-    profile_df.groupby(level=1).transform(lambda x: (x - x.mean()) / x.std())
-)
-del profile_df, profile_dfs
+    logger = get_logger()
+    logger.info('n_jobs: {}'.format(n_jobs))
 
-# load and process the play-by-play data for regression
-logger.info('loading second half PBP...')
-all_second_half = nba.pbp.clean_multigame_features(
-    pd.concat([
-        helpers.split_pbp_data(helpers.get_pbp_data(season))[1]
-        for season in seasons
-    ])
-)
-poss_grouped = all_second_half.groupby('poss_id')
-poss_end = poss_grouped.tail(1)
-y = poss_grouped.pts.sum().values
-poss_hm_off = poss_end.loc[:, 'hm_off'].values
-lineups = poss_end.loc[:, nba.pbp.ALL_LINEUP_COLS]
-poss_seasons = poss_end.loc[:, 'season']
-del all_second_half, poss_grouped, poss_end
+    # load and combine all player-season profiles and standardize within season
+    logger.info('loading profiles...')
+    profile_dfs = [
+        helpers.get_profiles_data(season) for season in seasons
+    ]
+    profile_df = pd.concat(profile_dfs)
+    rapm = profile_df.loc[:, ['orapm', 'drapm']].sum(axis=1)
+    profiles_scaled = (
+        profile_df.groupby(level=1)
+        .transform(lambda x: (x - x.mean()) / x.std())
+    )
+    del profile_df, profile_dfs
 
-# split lineups data into train and test
-pbp_is_train = poss_seasons.isin(seasons_train)
-lineups_train = lineups[pbp_is_train]
-lineups_test = lineups[~pbp_is_train]
-poss_year_train = poss_seasons[pbp_is_train]
-poss_year_test = poss_seasons[~pbp_is_train]
-hm_off_train = poss_hm_off[pbp_is_train]
-hm_off_test = poss_hm_off[~pbp_is_train]
-y_train = y[pbp_is_train]
-y_test = y[~pbp_is_train]
+    # load and process the play-by-play data for regression
+    logger.info('loading second half PBP...')
+    all_second_half = nba.pbp.clean_multigame_features(
+        pd.concat([
+            helpers.split_pbp_data(helpers.get_pbp_data(season))[1]
+            for season in seasons
+        ])
+    )
+    poss_grouped = all_second_half.groupby('poss_id')
+    poss_end = poss_grouped.tail(1)
+    y = poss_grouped.pts.sum().values
+    poss_hm_off = poss_end.loc[:, 'hm_off'].values
+    lineups = poss_end.loc[:, nba.pbp.ALL_LINEUP_COLS]
+    poss_seasons = poss_end.loc[:, 'season']
+    del all_second_half, poss_grouped, poss_end
 
-# split profiles data into train and test
-prof_is_train = profiles_scaled.index.get_level_values(1).isin(seasons_train)
-profiles_train = profiles_scaled[prof_is_train]
-profiles_test = profiles_scaled[~prof_is_train]
+    # split lineups data into train and test
+    pbp_is_train = poss_seasons.isin(seasons_train)
+    lineups_train = lineups[pbp_is_train]
+    lineups_test = lineups[~pbp_is_train]
+    poss_year_train = poss_seasons[pbp_is_train]
+    poss_year_test = poss_seasons[~pbp_is_train]
+    hm_off_train = poss_hm_off[pbp_is_train]
+    hm_off_test = poss_hm_off[~pbp_is_train]
+    y_train = y[pbp_is_train]
+    y_test = y[~pbp_is_train]
 
-# fit model on training data
-logging.info('starting to fit DR model')
-latent_train = pd.DataFrame(
-    dr_est.fit_transform(profiles_train), index=profiles_train.index
-)
-logging.info('done fitting DR model')
-logging.info('starting create_design_matrix for train')
-X_train = create_design_matrix(
-    lineups_train, latent_train, poss_year_train, rapm, hm_off_train
-)
-logging.info('done with create_design_matrix for train')
-logging.info('starting to fit regression model')
-reg_est.fit(X_train, y_train)
-logging.info('done fitting regression model')
+    # split profiles data into train and test
+    prof_is_train = (
+        profiles_scaled.index.get_level_values(1).isin(seasons_train)
+    )
+    profiles_train = profiles_scaled[prof_is_train]
+    profiles_test = profiles_scaled[~prof_is_train]
 
-# score model on test data
-logging.info('using DR model to transform test')
-latent_test = pd.DataFrame(
-    dr_est.transform(profiles_test), index=profiles_test.index
-)
-logging.info('done transforming test profiles')
-logging.info('starting create_design_matrix for test')
-X_test = create_design_matrix(
-    lineups_test, latent_test, poss_year_test, rapm, hm_off_test
-)
-logging.info('done with create_design_matrix for test')
-logging.info('predicting on X_test')
-predictions = reg_est.predict(X_test)
-logging.info('done predicting on X_test')
-logging.info('generating metrics')
+    # fit model on training data
+    logging.info('starting to fit DR model')
+    latent_train = pd.DataFrame(
+        dr_est.fit_transform(profiles_train), index=profiles_train.index
+    )
+    logging.info('done fitting DR model')
+    logging.info('starting create_design_matrix for train')
+    X_train = create_design_matrix(
+        lineups_train, latent_train, poss_year_train, rapm, hm_off_train
+    )
+    logging.info('done with create_design_matrix for train')
+    logging.info('starting to fit regression model')
+    reg_est.fit(X_train, y_train)
+    logging.info('done fitting regression model')
 
-rmse = metrics.mean_squared_error(y_test, predictions)
-r2 = metrics.r2_score(y_test, predictions)
-mae = metrics.median_absolute_error(y_test, predictions)
+    # score model on test data
+    logging.info('using DR model to transform test')
+    latent_test = pd.DataFrame(
+        dr_est.transform(profiles_test), index=profiles_test.index
+    )
+    logging.info('done transforming test profiles')
+    logging.info('starting create_design_matrix for test')
+    X_test = create_design_matrix(
+        lineups_test, latent_test, poss_year_test, rapm, hm_off_test
+    )
+    logging.info('done with create_design_matrix for test')
+    logging.info('predicting on X_test')
+    predictions = reg_est.predict(X_test)
+    logging.info('done predicting on X_test')
+    logging.info('generating metrics')
 
-logging.info('RMSE: {}'.format(rmse))
-logging.info('R^2: {}'.format(r2))
-logging.info('median abs err: {}'.format(mae))
+    rmse = metrics.mean_squared_error(y_test, predictions)
+    r2 = metrics.r2_score(y_test, predictions)
+    mae = metrics.median_absolute_error(y_test, predictions)
 
-perf_metrics = pd.Series({
-    'rmse': rmse,
-    'r2': r2,
-    'median_abs_error': mae
-})
-perf_metrics.to_csv('data/models/final_perf_metrics.csv')
+    logging.info('RMSE: {}'.format(rmse))
+    logging.info('R^2: {}'.format(r2))
+    logging.info('median abs err: {}'.format(mae))
 
-logging.info('writing models to disk for persistence')
-joblib.dump(dr_est, os.path.join(PROJ_DIR, 'models', 'dr_model.pkl'))
-joblib.dump(reg_est, os.path.join(PROJ_DIR, 'models', 'regression_model.pkl'))
-logging.info('wrote models to disk for persistence')
+    perf_metrics = pd.Series({
+        'rmse': rmse,
+        'r2': r2,
+        'median_abs_error': mae
+    })
+    perf_metrics.to_csv('data/models/final_perf_metrics.csv')
+
+    logging.info('writing models to disk for persistence')
+    joblib.dump(dr_est, os.path.join(PROJ_DIR, 'models', 'dr_model.pkl'))
+    joblib.dump(reg_est,
+                os.path.join(PROJ_DIR, 'models', 'regression_model.pkl'))
+    logging.info('wrote models to disk for persistence')
