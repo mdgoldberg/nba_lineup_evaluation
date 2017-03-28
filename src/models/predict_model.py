@@ -33,51 +33,63 @@ latent_profiles = pd.DataFrame(
 print 'Done loading profiles!'
 
 
-def expected_pd(off_players, def_players, season):
+def expected_pd(off_players, def_players, season,
+                off_only=False, def_only=False):
     rp_val = rapm.loc['RP', season]
-    off_rapm = [rapm.get((op, season), rp_val) for op in off_players]
-    def_rapm = [rapm.get((dp, season), rp_val) for dp in def_players]
-    off_players = np.array(off_players)[np.argsort(off_rapm)][::-1]
-    def_players = np.array(def_players)[np.argsort(def_rapm)][::-1]
-    off_feats = pd.DataFrame(pd.concat([
-        latent_profiles.loc[op, season]
-        if (op, season) in latent_profiles.index else
-        latent_profiles.loc['RP', season]
-        for op in off_players
-    ])).T.reset_index(drop=True)
-    def_feats = pd.DataFrame(pd.concat([
-        latent_profiles.loc[dp, season]
-        if (dp, season) in latent_profiles.index else
-        latent_profiles.loc['RP', season]
-        for dp in def_players
-    ])).T.reset_index(drop=True)
-    X_off = pd.concat((off_feats, def_feats), axis=1)
-    X_off['hm_off'] = True
-    X_def = pd.concat((def_feats, off_feats), axis=1)
-    X_def['hm_off'] = True
+    if off_only or not (off_only or def_only):
+        off_rapm = [rapm.get((op, season), rp_val) for op in off_players]
+        off_players = np.array(off_players)[np.argsort(off_rapm)][::-1]
+        off_feats = pd.DataFrame(pd.concat([
+            latent_profiles.loc[op, season]
+            if (op, season) in latent_profiles.index else
+            latent_profiles.loc['RP', season]
+            for op in off_players
+        ])).T.reset_index(drop=True)
+        X_off = pd.concat((off_feats, def_feats), axis=1)
+        X_off['hm_off'] = True
+    if def_only or not (off_only or def_only):
+        def_rapm = [rapm.get((dp, season), rp_val) for dp in def_players]
+        def_players = np.array(def_players)[np.argsort(def_rapm)][::-1]
+        def_feats = pd.DataFrame(pd.concat([
+            latent_profiles.loc[dp, season]
+            if (dp, season) in latent_profiles.index else
+            latent_profiles.loc['RP', season]
+            for dp in def_players
+        ])).T.reset_index(drop=True)
+        X_def = pd.concat((def_feats, off_feats), axis=1)
+        X_def['hm_off'] = True
+
+    if off_only:
+        return 100. * reg_model.predict(X_off)[0]
+    if def_only:
+        return 100. * reg_model.predict(X_def)[0]
 
     return 100. * (reg_model.predict(X_off)[0] - reg_model.predict(X_def)[0])
 
 
+@decorators.memoize
 def evaluate_player(player, season):
     off_lineup = [player, 'RP', 'RP', 'RP', 'RP']
     def_lineup = ['RP' for _ in range(5)]
     return expected_pd(off_lineup, def_lineup, season)
 
 
+@decorators.memoize
 def evaluate_lineup(lineup, season):
     def_lineup = ['RP' for _ in range(5)]
     return expected_pd(lineup, def_lineup, season)
 
 
+@decorators.memoize
 def evaluate_game(bsid):
+    print 'processing {}'.format(bsid)
     bs = nba.BoxScore(bsid)
     season = bs.season()
     stats = bs.basic_stats()
     hm_players = stats.ix[stats.is_home, 'player_id'].values
     aw_players = stats.ix[~stats.is_home, 'player_id'].values
-    hm_starters = hm_players[stats.is_starter]
-    aw_starters = aw_players[stats.is_starter]
+    hm_starters = hm_players[stats[stats.is_home].is_starter]
+    aw_starters = aw_players[stats[~stats.is_home].is_starter]
     home, away = bs.home(), bs.away()
     true_pd = bs.home_score() - bs.away_score()
     exp_pd = expected_pd(hm_starters, aw_starters, season)
@@ -101,6 +113,7 @@ def evaluate_game(bsid):
     }
 
 
+@decorators.memoize
 def evaluate_team_schedule(team_id, year):
     team = nba.Team(team_id)
     schedule = team.schedule(year)
@@ -154,6 +167,7 @@ def process_trade(team1, team2, starters1, starters2, trade):
     return starters1, starters2
 
 
+@decorators.memoize
 def year_off_def_matrix(year, trade=None):
     season = nba.Season(year)
     team_ids = season.get_team_ids()
@@ -165,19 +179,20 @@ def year_off_def_matrix(year, trade=None):
         starters2 = get_starters(team2, year)
         starters1, starters2 = process_trade(team1, team2, starters1,
                                              starters2, trade)
-        pd_12 = expected_pd(starters1, starters2, year)
-        pd_21 = expected_pd(starters2, starters1, year)
+        pd_12 = expected_pd(starters1, starters2, year, off_only=True)
+        pd_21 = expected_pd(starters2, starters1, year, def_only=True)
         idx1 = team_idxs[team1]
         idx2 = team_idxs[team2]
         grid[idx1, idx2] = pd_12
         grid[idx2, idx1] = pd_21
 
     df = pd.DataFrame(grid, index=team_ids, columns=team_ids)
-    df.index.name = 'offense'
-    df.columns.name = 'defense'
+    df.index.name = 'Offense'
+    df.columns.name = 'Defense'
     return df
 
 
+@decorators.memoize
 def year_diff_matrix(year, trade=None):
     grid_df = year_off_def_matrix(year, trade=trade)
     season = nba.Season(year)
@@ -205,6 +220,7 @@ def year_diff_matrix(year, trade=None):
     return df
 
 
+@decorators.memoize
 def evaluate_trade(team1, team2, player1, player2, year):
     # generate matrices for with and without trade
     trade = (team1, team2, player1, player2)
@@ -219,15 +235,13 @@ def evaluate_trade(team1, team2, player1, player2, year):
     ppp_advs = []
     rank_advs = []
     for team in (team1, team2):
-        team_idx = team_ids.index(team)
-
-        reg_ppp = np.sum(reg_mat[team_idx])
-        trade_ppp = np.sum(trade_mat[team_idx])
+        reg_ppp = np.sum(reg_mat.loc[team])
+        trade_ppp = np.sum(trade_mat.loc[team])
         ppp_adv = trade_ppp - reg_ppp
         ppp_advs.append(ppp_adv)
 
-        reg_rank = n - np.sum(reg_mat[team_idx] > 0)
-        trade_rank = n - np.sum(trade_mat[team_idx] > 0)
+        reg_rank = n - np.sum(reg_mat.loc[team] > 0)
+        trade_rank = n - np.sum(trade_mat.loc[team] > 0)
         rank_adv = -(trade_rank - reg_rank)
         rank_advs.append(rank_adv)
 
@@ -237,11 +251,13 @@ def evaluate_trade(team1, team2, player1, player2, year):
     return ppp_advs, rank_advs
 
 
+@decorators.memoize
 def evaluate_all_trades(year):
     season = nba.Season(year)
     team_ids = season.get_team_ids()
     trade_results = []
     for teams in itertools.combinations(team_ids, 2):
+        print 'evaluating trades between {} and {}'.format(*teams)
         starters = [get_starters(team, year) for team in teams]
         for players in itertools.product(*starters):
             ppps, ranks = evaluate_trade(teams[0], teams[1], players[0],
