@@ -36,28 +36,29 @@ print 'Done loading profiles!'
 def expected_pd(off_players, def_players, season,
                 off_only=False, def_only=False):
     rp_val = rapm.loc['RP', season]
-    if off_only or not (off_only or def_only):
-        off_rapm = [rapm.get((op, season), rp_val) for op in off_players]
-        off_players = np.array(off_players)[np.argsort(off_rapm)][::-1]
-        off_feats = pd.DataFrame(pd.concat([
-            latent_profiles.loc[op, season]
-            if (op, season) in latent_profiles.index else
-            latent_profiles.loc['RP', season]
-            for op in off_players
-        ])).T.reset_index(drop=True)
-        X_off = pd.concat((off_feats, def_feats), axis=1)
-        X_off['hm_off'] = True
-    if def_only or not (off_only or def_only):
-        def_rapm = [rapm.get((dp, season), rp_val) for dp in def_players]
-        def_players = np.array(def_players)[np.argsort(def_rapm)][::-1]
-        def_feats = pd.DataFrame(pd.concat([
-            latent_profiles.loc[dp, season]
-            if (dp, season) in latent_profiles.index else
-            latent_profiles.loc['RP', season]
-            for dp in def_players
-        ])).T.reset_index(drop=True)
-        X_def = pd.concat((def_feats, off_feats), axis=1)
-        X_def['hm_off'] = True
+
+    off_rapm = [rapm.get((op, season), rp_val) for op in off_players]
+    off_players = np.array(off_players)[np.argsort(off_rapm)][::-1]
+    off_feats = pd.DataFrame(pd.concat([
+        latent_profiles.loc[op, season]
+        if (op, season) in latent_profiles.index else
+        latent_profiles.loc['RP', season]
+        for op in off_players
+    ])).T.reset_index(drop=True)
+
+    def_rapm = [rapm.get((dp, season), rp_val) for dp in def_players]
+    def_players = np.array(def_players)[np.argsort(def_rapm)][::-1]
+    def_feats = pd.DataFrame(pd.concat([
+        latent_profiles.loc[dp, season]
+        if (dp, season) in latent_profiles.index else
+        latent_profiles.loc['RP', season]
+        for dp in def_players
+    ])).T.reset_index(drop=True)
+
+    X_off = pd.concat((off_feats, def_feats), axis=1)
+    X_off['hm_off'] = True
+    X_def = pd.concat((def_feats, off_feats), axis=1)
+    X_def['hm_off'] = True
 
     if off_only:
         return 100. * reg_model.predict(X_off)[0]
