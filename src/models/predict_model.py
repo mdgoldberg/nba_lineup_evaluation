@@ -44,13 +44,13 @@ def expected_pd(off_players, def_players, season):
         if (op, season) in latent_profiles.index else
         latent_profiles.loc['RP', season]
         for op in off_players
-    ])).T
+    ])).T.reset_index(drop=True)
     def_feats = pd.DataFrame(pd.concat([
         latent_profiles.loc[dp, season]
         if (dp, season) in latent_profiles.index else
         latent_profiles.loc['RP', season]
         for dp in def_players
-    ])).T
+    ])).T.reset_index(drop=True)
     X_off = pd.concat((off_feats, def_feats), axis=1)
     X_off['hm_off'] = True
     X_def = pd.concat((def_feats, off_feats), axis=1)
