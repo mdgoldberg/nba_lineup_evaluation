@@ -8,6 +8,7 @@ import dotenv
 import numpy as np
 import pandas as pd
 from sklearn import linear_model, metrics
+from sklearn.externals import joblib
 
 from sportsref import nba
 
@@ -159,4 +160,6 @@ perf_metrics = pd.Series({
 })
 perf_metrics.to_csv('data/models/basic_perf_metrics.csv')
 
-
+logging.info('writing comparison model to disk for persistence')
+joblib.dump(reg_est, os.path.join(PROJ_DIR, 'models', 'comparison_model.pkl'))
+logging.info('wrote comparison model to disk for persistence')

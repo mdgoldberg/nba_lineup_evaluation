@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 from sklearn import (base, decomposition, ensemble, linear_model,
                      metrics, model_selection, preprocessing)
+from sklearn.externals import joblib
 import xgboost as xgb
 
 from sportsref import nba
@@ -24,6 +25,7 @@ n_jobs = os.environ.get('SLURM_NTASKS', mp.cpu_count()-1)
 
 seasons_train = range(2007, 2015)
 seasons_test = range(2015, 2017)
+seasons = seasons_train + seasons_test
 
 dr_est = decomposition.PCA() # TODO: fill in
 reg_est = linear_model.LinearRegression() # TODO: fill in
@@ -79,7 +81,6 @@ def _design_matrix_one_season(args):
 
 
 def create_design_matrix(lineups, profiles, seasons, rapm, hm_off):
-    prof_cols = profiles.columns
     seasons_uniq = np.unique(seasons)
     pool = mp.Pool(4)
     args_to_eval = [
@@ -140,7 +141,9 @@ profiles_test = profiles_scaled[~prof_is_train]
 
 # fit model on training data
 logging.info('starting to fit DR model')
-latent_train = dr_est.fit_transform(profiles_train)
+latent_train = pd.DataFrame(
+    dr_est.fit_transform(profiles_train), index=profiles_train.index
+)
 logging.info('done fitting DR model')
 logging.info('starting create_design_matrix for train')
 X_train = create_design_matrix(
@@ -153,7 +156,9 @@ logging.info('done fitting regression model')
 
 # score model on test data
 logging.info('using DR model to transform test')
-latent_test = dr_est.transform(profiles_test)
+latent_test = pd.DataFrame(
+    dr_est.transform(profiles_test), index=profiles_test.index
+)
 logging.info('done transforming test profiles')
 logging.info('starting create_design_matrix for test')
 X_test = create_design_matrix(
@@ -179,3 +184,8 @@ perf_metrics = pd.Series({
     'median_abs_error': mae
 })
 perf_metrics.to_csv('data/models/final_perf_metrics.csv')
+
+logging.info('writing models to disk for persistence')
+joblib.dump(dr_est, os.path.join(PROJ_DIR, 'models', 'dr_model.pkl'))
+joblib.dump(reg_est, os.path.join(PROJ_DIR, 'models', 'regression_model.pkl'))
+logging.info('wrote models to disk for persistence')
