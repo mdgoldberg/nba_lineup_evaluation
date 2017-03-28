@@ -1,8 +1,11 @@
+import logging
 import os
 
 import dotenv
 import numpy as np
 import pandas as pd
+import matplotlib as mpl
+from matplotlib import pyplot as plt
 
 from sportsref import nba
 
@@ -12,6 +15,14 @@ from src.models import predict_model
 env_path = dotenv.find_dotenv()
 dotenv.load_dotenv(env_path)
 PROJ_DIR = os.environ['PROJ_DIR']
+
+
+def get_logger():
+    logging.config.fileConfig(
+        os.path.join(PROJ_DIR, 'logging_config.ini')
+    )
+    logger = logging.getLogger()
+    return logger
 
 
 def write_output(obj, filename):
@@ -30,11 +41,11 @@ def plot_matrix(grid, out_filename=None):
     plt.colorbar(img, cmap=cmap)
     ax.xaxis.tick_top()
     ax.set_xticks(np.arange(n) + 0.5)
-    ax.set_xticklabels(df.columns, rotation=90)
+    ax.set_xticklabels(grid.columns, rotation=90)
     ax.set_yticks(np.arange(n) + 0.5)
-    ax.set_yticklabels(df.index)
-    ax.set_xlabel(df.columns.name)
-    ax.set_ylabel(df.index.name)
+    ax.set_yticklabels(grid.index)
+    ax.set_xlabel(grid.columns.name)
+    ax.set_ylabel(grid.index.name)
     if out_filename:
         fig.savefig(out_filename)
     else:
@@ -42,11 +53,12 @@ def plot_matrix(grid, out_filename=None):
 
 
 def produce_results_for_year(year):
-    logging.info('loading PBP data')
+    logger = get_logger()
+    logger.info('loading PBP data')
     pbp = helpers.get_pbp_data(year)
     season = nba.Season(year)
 
-    logging.info('evaluating players')
+    logger.info('evaluating players')
     players_df = season.player_stats_totals().query('mp >= 820')
     players = players_df.player_id.values[:250]
     player_evals = pd.Series({
@@ -55,7 +67,7 @@ def produce_results_for_year(year):
     })
     write_output(player_evals, 'player_evals.csv')
 
-    logging.info('evaluating lineups')
+    logger.info('evaluating lineups')
     hm_lineups = set(map(sorted,
                          map(tuple, pbp[nba.pbp.HM_LINEUP_COLS].values)))
     aw_lineups = set(map(sorted,
@@ -67,7 +79,7 @@ def produce_results_for_year(year):
     })
     write_output(lineup_evals, 'lineup_evals.csv')
 
-    logging.info('evaluating starting decisions')
+    logger.info('evaluating starting decisions')
     team_ids = season.get_team_ids()
     sched_eval_df = pd.concat([
         predict_model.evaluate_team_schedule(team_id, year)
@@ -75,14 +87,14 @@ def produce_results_for_year(year):
     ])
     write_output(sched_eval_df, 'sched_evals.csv')
 
-    logging.info('evaluating starting offense vs defense')
+    logger.info('evaluating starting offense vs defense')
     off_def_matrix = predict_model.year_off_def_matrix(year)
     plot_matrix(off_def_matrix, 'off_def_matrix.csv')
 
-    logging.info('evaluating starting lineup point differential')
+    logger.info('evaluating starting lineup point differential')
     diff_matrix = predict_model.year_diff_matrix(year)
     plot_matrix(diff_matrix, 'point_diff_matrix.csv')
 
-    logging.info('evaluating all trades')
+    logger.info('evaluating all trades')
     trade_evals = predict_model.evaluate_all_trades(year)
     write_output(trade_evals, 'trade_evals.csv')

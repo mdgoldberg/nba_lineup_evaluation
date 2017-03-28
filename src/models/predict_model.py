@@ -3,8 +3,8 @@ import itertools
 
 import dask
 from dask import bag as db, diagnostics
-import matplotlib as mpl
-from matplotlib import pyplot as plt
+import numpy as np
+import pandas as pd
 from sklearn.externals import joblib
 
 from sportsref import nba, decorators
@@ -15,10 +15,9 @@ from src.models import train_model
 dr_model = joblib.load('models/dr_model.pkl')
 reg_model = joblib.load('models/regression_model.pkl')
 
-
 # 1. load regular profiles and compute RAPM for each player
 profile_dfs = [
-    helpers.get_profiles_data(season) for season in seasons
+    helpers.get_profiles_data(season) for season in range(2007, 2017)
 ]
 profile_df = pd.concat(profile_dfs)
 rapm = profile_df.loc[:, ['orapm', 'drapm']].sum(axis=1)
@@ -28,8 +27,9 @@ profiles_scaled = (
     profile_df.groupby(level=1).transform(lambda x: (x - x.mean()) / x.std())
 )
 latent_profiles = pd.DataFrame(
-    dr_est.transform(profiles_scaled), index=profiles_scaled.index
+    dr_model.transform(profiles_scaled), index=profiles_scaled.index
 )
+
 
 def expected_pd(hm_players, aw_players, hm_off, season):
     players = np.concatenate((hm_players, aw_players)).reshape(1, -1)
@@ -44,7 +44,7 @@ def expected_pd(hm_players, aw_players, hm_off, season):
     X_def = train_model.create_design_matrix(
         lineups, latent_profiles, seasons, rapm, ~hm_off
     )
-    return 100. * (reg_model.predict(X_off) - reg_model.predict(X_def)
+    return 100. * (reg_model.predict(X_off) - reg_model.predict(X_def))
 
 
 def evaluate_player(player, season):
@@ -69,8 +69,8 @@ def evaluate_game(bsid):
     stats = bs.basic_stats()
     hm_players = stats.ix[stats.is_home, 'player_id'].values
     aw_players = stats.ix[~stats.is_home, 'player_id'].values
-    hm_starters = hm_lineup[stats.is_starter]
-    aw_starters = aw_lineup[stats.is_starter]
+    hm_starters = hm_players[stats.is_starter]
+    aw_starters = aw_players[stats.is_starter]
     home, away = bs.home(), bs.away()
     true_pd = bs.home_score() - bs.away_score()
     exp_pd = expected_pd(hm_starters, aw_starters, True, season)
@@ -85,8 +85,8 @@ def evaluate_game(bsid):
     )
 
     return {
-        '{}_true_pd'.format(home): true_pd
-        '{}_true_pd'.format(away): -true_pd
+        '{}_true_pd'.format(home): true_pd,
+        '{}_true_pd'.format(away): -true_pd,
         '{}_exp_pd'.format(home): exp_pd,
         '{}_exp_pd'.format(away): -exp_pd,
         '{}_best_exp_pd'.format(home): best_hm_pd,
@@ -121,7 +121,7 @@ def get_starters(team_id, year):
     return list(max(start_counter, key=start_counter.get))
 
 
-def process_trade(starters1, starters2, trade):
+def process_trade(team1, team2, starters1, starters2, trade):
     if not trade:
         return starters1, starters2
 
@@ -152,15 +152,12 @@ def year_off_def_matrix(year, trade=None):
     team_ids = season.get_team_ids()
     n = len(team_ids)
     team_idxs = dict(zip(team_ids, range(n)))
-    lineups = {
-        get_starters(team_id, year, trades)
-        for team_id in team_ids
-    }
     grid = np.zeros((n, n))
     for team1, team2 in itertools.combinations_with_replacement(team_ids, 2):
         starters1 = get_starters(team1, year)
         starters2 = get_starters(team2, year)
-        starters1, starters2 = process_trade(starters1, starters2, trade)
+        starters1, starters2 = process_trade(team1, team2, starters1,
+                                             starters2, trade)
         pd_12 = expected_pd(starters1, starters2, True, year)
         pd_21 = expected_pd(starters2, starters1, True, year)
         idx1 = team_idxs[team1]
@@ -204,8 +201,8 @@ def year_diff_matrix(year, trade=None):
 def evaluate_trade(team1, team2, player1, player2, year):
     # generate matrices for with and without trade
     trade = (team1, team2, player1, player2)
-    reg_mat = year_team_matrix(year)
-    trade_mat = year_team_matrix(year, trade)
+    reg_mat = year_diff_matrix(year)
+    trade_mat = year_diff_matrix(year, trade)
 
     # compare matrices
     season = nba.Season(year)
@@ -240,12 +237,13 @@ def evaluate_all_trades(year):
     for teams in itertools.combinations(team_ids, 2):
         starters = [get_starters(team, year) for team in teams]
         for players in itertools.product(*starters):
-            ppps, ranks = evaluate_trade(*teams, *players, year)
+            ppps, ranks = evaluate_trade(teams[0], teams[1], players[0],
+                                         players[1], year)
             result = {
                 'team1': teams[0], 'team2': teams[1],
                 'player1': players[0], 'player2': players[1],
                 'team1_ppp_adv': ppps[0], 'team2_ppp_adv': ppps[1],
                 'team1_rank_adv': ranks[0], 'team2_rank_adv': ranks[1]
             }
-            trade_results.append(results)
+            trade_results.append(result)
     return pd.DataFrame(trade_results)
