@@ -21,13 +21,14 @@ dotenv.load_dotenv(env_path)
 PROJ_DIR = os.environ['PROJ_DIR']
 n_jobs = int(os.environ.get('SLURM_NTASKS', mp.cpu_count()-1))
 
-seasons_train = range(2007, 2015)
+seasons_train = range(2010, 2015)
 seasons_test = range(2015, 2017)
 seasons = seasons_train + seasons_test
 
+# TODO
 dr_est = manifold.Isomap(n_components=5, n_neighbors=10)
 reg_est = ensemble.RandomForestRegressor(
-    max_depth=3, n_estimators=300, n_jobs=n_jobs, verbose=3
+    max_depth=3, n_estimators=250, n_jobs=n_jobs, verbose=3
 )
 
 
@@ -42,7 +43,7 @@ def get_logger():
 def _design_matrix_one_season(args):
     logger = get_logger()
     logger.info('starting _design_matrix_one_season')
-    lineups, sub_profs, sub_rapm, sub_hm_off = args
+    lineups, sub_profs, sub_rapm, sub_hm_off, sub_y = args
     hm_lineups = lineups.ix[:, nba.pbp.HM_LINEUP_COLS]
     aw_lineups = lineups.ix[:, nba.pbp.AW_LINEUP_COLS]
     rp_val = sub_rapm.loc['RP']
@@ -77,19 +78,22 @@ def _design_matrix_one_season(args):
         ).fillna(sub_profs.loc['RP'])
 
     merged_df.drop(cols, axis=1, inplace=True)
+    new_sub_y = np.concatenate((sub_y[sub_hm_off], sub_y[~sub_hm_off]))
+    merged_df['y'] = new_sub_y
     return merged_df
 
 
-def create_design_matrix(lineups, profiles, seasons, rapm, hm_off):
+def create_design_matrix(lineups, profiles, seasons, rapm, hm_off, y):
     seasons_uniq = np.unique(seasons)
     pool = mp.Pool(min(n_jobs, len(seasons_uniq)))
     args_to_eval = [
         (lineups[seasons == s], profiles.xs(s, level=1), rapm.xs(s, level=1),
-         hm_off[seasons == s])
+         hm_off[seasons == s], y[seasons == s])
         for s in seasons_uniq
     ]
-    dfs = pool.map(_design_matrix_one_season, args_to_eval)
-    return pd.concat(dfs)
+    df = pd.concat(pool.map(_design_matrix_one_season, args_to_eval))
+    y = df.pop('y')
+    return df, y
 
 
 if __name__ == '__main__':
@@ -151,8 +155,9 @@ if __name__ == '__main__':
     )
     logging.info('done fitting DR model')
     logging.info('starting create_design_matrix for train')
-    X_train = create_design_matrix(
-        lineups_train, latent_train, poss_year_train, rapm, hm_off_train
+    X_train, y_train = create_design_matrix(
+        lineups_train, latent_train, poss_year_train, rapm, hm_off_train,
+        y_train
     )
     logging.info('done with create_design_matrix for train')
     logging.info('starting to fit regression model')
@@ -166,8 +171,8 @@ if __name__ == '__main__':
     )
     logging.info('done transforming test profiles')
     logging.info('starting create_design_matrix for test')
-    X_test = create_design_matrix(
-        lineups_test, latent_test, poss_year_test, rapm, hm_off_test
+    X_test, y_test = create_design_matrix(
+        lineups_test, latent_test, poss_year_test, rapm, hm_off_test, y_test
     )
     logging.info('done with create_design_matrix for test')
     logging.info('predicting on X_test')

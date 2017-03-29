@@ -19,7 +19,7 @@ dotenv.load_dotenv(env_path)
 PROJ_DIR = os.environ['PROJ_DIR']
 n_jobs = os.environ.get('SLURM_NTASKS', mp.cpu_count()-1)
 
-seasons_train = range(2007, 2015)
+seasons_train = range(2010, 2015)
 seasons_test = range(2015, 2017)
 seasons = seasons_train + seasons_test
 
@@ -36,7 +36,7 @@ def get_logger():
 def _design_matrix_one_season(args):
     logger = get_logger()
     logger.info('starting design_matrix_one_season')
-    lineups, sub_orapm, sub_drapm, sub_hm_off = args
+    lineups, sub_orapm, sub_drapm, sub_hm_off, sub_y = args
     hm_lineups = lineups.ix[:, nba.pbp.HM_LINEUP_COLS]
     aw_lineups = lineups.ix[:, nba.pbp.AW_LINEUP_COLS]
 
@@ -56,34 +56,32 @@ def _design_matrix_one_season(args):
 
     rp_oval = sub_orapm.loc['RP']
     off_rapm = off_df.applymap(lambda p: sub_orapm.get(p, rp_oval))
-    off_rapm = pd.DataFrame(
-        np.flip(off_rapm.apply(np.sort, axis=1).values, 1),
-        columns=off_cols
-    )
+    off_rapm = off_rapm.apply(np.sort, axis=1)
+
     rp_dval = sub_drapm.loc['RP']
     def_rapm = def_df.applymap(lambda p: sub_drapm.get(p, rp_oval))
-    def_rapm = pd.DataFrame(
-        np.flip(def_rapm.apply(np.sort, axis=1).values, 1),
-        columns=def_cols
-    )
+    def_rapm = def_rapm.apply(np.sort, axis=1)
 
     merged_df = pd.concat((off_rapm, def_rapm), axis=1)
     n_hm_off = len(hm_off_df)
     merged_df['hm_off'] = [i < n_hm_off for i in range(len(merged_df))]
+    new_sub_y = np.concatenate((sub_y[sub_hm_off], sub_y[~sub_hm_off]))
+    merged_df['y'] = new_sub_y
 
     return merged_df
 
 
-def create_design_matrix(lineups, orapm, drapm, seasons, hm_off):
+def create_design_matrix(lineups, orapm, drapm, seasons, hm_off, y):
     seasons_uniq = np.unique(seasons)
     pool = mp.Pool(min(4, n_jobs))
     args_to_eval = [
         (lineups[seasons == s], orapm.xs(s, level=1), drapm.xs(s, level=1),
-         hm_off[seasons == s])
+         hm_off[seasons == s], y[seasons == s])
         for s in seasons_uniq
     ]
-    dfs = pool.map(_design_matrix_one_season, args_to_eval)
-    return pd.concat(dfs)
+    df = pd.concat(pool.map(_design_matrix_one_season, args_to_eval))
+    y = df.pop('y')
+    return df, y
 
 
 logger = get_logger()
@@ -109,8 +107,8 @@ all_second_half = nba.pbp.clean_multigame_features(
 )
 poss_grouped = all_second_half.groupby('poss_id')
 poss_end = poss_grouped.tail(1)
-y = poss_grouped.pts.sum().values
 poss_hm_off = poss_end.loc[:, 'hm_off'].values
+y = poss_grouped.pts.sum().values
 lineups = poss_end.loc[:, nba.pbp.ALL_LINEUP_COLS]
 poss_seasons = poss_end.loc[:, 'season']
 del all_second_half, poss_grouped, poss_end
@@ -128,18 +126,19 @@ y_test = y[~pbp_is_train]
 
 # fit model on training data
 logging.info('starting create_design_matrix for train')
-X_train = create_design_matrix(
-    lineups_train, orapm, drapm, poss_year_train, hm_off_train
+X_train, y_train = create_design_matrix(
+    lineups_train, orapm, drapm, poss_year_train, hm_off_train, y_train
 )
 logging.info('done with create_design_matrix for train')
+logging.info('len(X_train) == {}'.format(len(X_train)))
 logging.info('starting to fit regression model')
 reg_est.fit(X_train, y_train)
 logging.info('done fitting regression model')
 
 # score model on test data
 logging.info('starting create_design_matrix for test')
-X_test = create_design_matrix(
-    lineups_test, orapm, drapm, poss_year_test, hm_off_test
+X_test, y_test = create_design_matrix(
+    lineups_test, orapm, drapm, poss_year_test, hm_off_test, y_test
 )
 logging.info('done with create_design_matrix for test')
 logging.info('predicting on X_test')
