@@ -62,7 +62,7 @@ def produce_results_for_year(year):
 
     logger.info('evaluating players')
     players_df = season.player_stats_totals().query('mp >= 820')
-    players = players_df.player_id.values[:250]
+    players = players_df.player_id.values
     player_evals = pd.Series({
         player: predict_model.evaluate_player(player, year)
         for player in players
