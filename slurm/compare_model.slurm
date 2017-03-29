@@ -2,7 +2,7 @@
 
 #SBATCH -p general
 #SBATCH -J compare_model
-#SBATCH -n 8
+#SBATCH -n 4
 #SBATCH -N 1
 #SBATCH -t 1-00:00
 #SBATCH --mem 160000
