@@ -5,7 +5,7 @@
 #SBATCH -n 8
 #SBATCH -N 1
 #SBATCH -t 2-00:00
-#SBATCH --mem 160000
+#SBATCH --mem 200000
 #SBATCH -o logs/train_model.out
 #SBATCH -e logs/train_model.err
 
