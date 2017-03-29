@@ -9,10 +9,8 @@ from dask import delayed
 import dotenv
 import numpy as np
 import pandas as pd
-from sklearn import (base, decomposition, ensemble, linear_model,
-                     metrics, model_selection, preprocessing)
+from sklearn import ensemble, manifold, metrics, model_selection
 from sklearn.externals import joblib
-import xgboost as xgb
 
 from sportsref import nba
 
@@ -27,8 +25,10 @@ seasons_train = range(2007, 2015)
 seasons_test = range(2015, 2017)
 seasons = seasons_train + seasons_test
 
-dr_est = decomposition.PCA() # TODO: fill in
-reg_est = linear_model.LinearRegression() # TODO: fill in
+dr_est = manifold.Isomap(n_components=5, n_neighbors=10)
+reg_est = ensemble.RandomForestRegressor(
+    max_depth=3, n_estimators=1000, n_jobs=n_jobs, verbose=2
+)
 
 
 def get_logger():
