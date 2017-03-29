@@ -160,6 +160,7 @@ if __name__ == '__main__':
         y_train
     )
     logging.info('done with create_design_matrix for train')
+    logging.info('len(X_train) == {}'.format(len(X_train)))
     logging.info('starting to fit regression model')
     reg_est.fit(X_train, y_train)
     logging.info('done fitting regression model')

@@ -164,6 +164,7 @@ for dr_name, dr_est in dr_ests.items():
             lineups, latent_profs, poss_seasons, rapm, poss_hm_off, y
         )
         logging.info('done with create_design_matrix for train')
+        logging.info('len(X) == {}'.format(len(X)))
         for reg_name, reg_est in reg_ests.items():
             logging.info('starting regression: {}'.format(reg_name))
             reg_params_grid = model_selection.ParameterGrid(
