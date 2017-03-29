@@ -34,6 +34,8 @@ def get_logger():
 
 
 def _design_matrix_one_season(args):
+    logger = get_logger()
+    logger.info('starting design_matrix_one_season')
     lineups, sub_orapm, sub_drapm, sub_hm_off = args
     hm_lineups = lineups.ix[:, nba.pbp.HM_LINEUP_COLS]
     aw_lineups = lineups.ix[:, nba.pbp.AW_LINEUP_COLS]
