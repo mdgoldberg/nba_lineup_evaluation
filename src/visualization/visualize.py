@@ -28,7 +28,7 @@ def get_logger():
 def write_output(obj, filename):
     obj.to_csv(os.path.join(
         PROJ_DIR, 'data', 'results', filename
-    ), index_label=False)
+    ))
 
 
 def plot_matrix(grid, out_filename=None):
@@ -40,12 +40,14 @@ def plot_matrix(grid, out_filename=None):
     img = ax.imshow(grid, cmap=cmap)
     plt.colorbar(img, cmap=cmap)
     ax.xaxis.tick_top()
-    ax.set_xticks(np.arange(n) + 0.5)
+    ax.xaxis.set_label_position('top')
+    ax.set_xticks(np.arange(n))# + 0.5)
     ax.set_xticklabels(grid.columns, rotation=90)
-    ax.set_yticks(np.arange(n) + 0.5)
+    ax.set_yticks(np.arange(n))# + 0.5)
     ax.set_yticklabels(grid.index)
     ax.set_xlabel(grid.columns.name)
     ax.set_ylabel(grid.index.name)
+    fig.tight_layout()
     if out_filename:
         fig.savefig(os.path.join(PROJ_DIR, 'data', 'figures', out_filename))
     else:
@@ -101,4 +103,6 @@ def produce_results_for_year(year):
     trade_evals = predict_model.evaluate_all_trades(year)
     write_output(trade_evals, 'trade_evals.csv')
 
-produce_results_for_year(2016)
+
+if __name__ == '__main__':
+    produce_results_for_year(2016)
