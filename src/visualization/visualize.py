@@ -100,3 +100,5 @@ def produce_results_for_year(year):
     logger.info('evaluating all trades')
     trade_evals = predict_model.evaluate_all_trades(year)
     write_output(trade_evals, 'trade_evals.csv')
+
+produce_results_for_year(2016)

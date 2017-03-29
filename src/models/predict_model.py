@@ -13,7 +13,7 @@ from src import helpers
 from src.models import train_model
 
 dr_model = joblib.load('models/dr_model.pkl')
-reg_model = joblib.load('models/regression_model.pkl')
+reg_model = joblib.load('models/regression_model.pkl').set_params(verbose=0)
 
 # 1. load regular profiles and compute RAPM for each player
 print 'Please wait while loading profiles...'

@@ -11,7 +11,6 @@ import numpy as np
 import pandas as pd
 from sklearn import (decomposition, ensemble, linear_model, manifold,
                      model_selection)
-import xgboost as xgb
 
 from sportsref import nba
 
@@ -39,15 +38,15 @@ dr_param_grids = {
     }
 }
 reg_ests = {
-    'lin_reg': linear_model.LinearRegression(),
+    'lin_reg': linear_model.LinearRegression(n_jobs=n_jobs),
     'rf': ensemble.RandomForestRegressor(n_jobs=n_jobs, n_estimators=100),
-    'gb': xgb.XGBRegressor(n_estimators=200)
+    'gb': ensemble.GradientBoostingRegressor(n_estimators=100)
 }
 reg_param_grids = {
     'lin_reg': {},
     'rf': {},
     'gb': {
-        'learning_rate': [.001, .01, .1],
+        'learning_rate': [.01, .1],
         'max_depth': [3, 4, 5],
     }
 }
@@ -175,7 +174,7 @@ for dr_name, dr_est in dr_ests.items():
                 logger.info('starting training for one param grid point...')
                 cv_score = np.mean(model_selection.cross_val_score(
                     reg_est, X, y, cv=3, groups=poss_seasons,
-                    scoring='neg_mean_squared_error', n_jobs=n_jobs
+                    scoring='neg_mean_squared_error', n_jobs=1
                 ))
                 results_row = {
                     'dim_red': dr_name,
