@@ -27,7 +27,7 @@ seasons = seasons_train + seasons_test
 
 dr_est = manifold.Isomap(n_components=5, n_neighbors=10)
 reg_est = ensemble.RandomForestRegressor(
-    max_depth=3, n_estimators=1000, n_jobs=n_jobs, verbose=2
+    max_depth=None, n_estimators=1000, n_jobs=n_jobs, verbose=2
 )
 
 
