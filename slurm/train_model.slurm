@@ -16,4 +16,4 @@ source activate thesis
 
 mkdir -p data/models
 
-python src/models/train_model.py
+python -m src.models.train_model
