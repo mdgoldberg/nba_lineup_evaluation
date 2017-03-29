@@ -4,7 +4,7 @@
 #SBATCH -J train_model
 #SBATCH -n 32
 #SBATCH -N 1
-#SBATCH -t 3-00:00
+#SBATCH -t 1-00:00
 #SBATCH --mem 150000
 #SBATCH -o logs/train_model.out
 #SBATCH -e logs/train_model.err
@@ -16,4 +16,4 @@ source activate thesis
 
 mkdir -p data/models
 
-python -m src.models.train_model
+python -m src.models.train_model > logs/train.out 2>&1
