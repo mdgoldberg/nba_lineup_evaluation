@@ -181,7 +181,7 @@ def year_off_def_matrix(year, trade=None):
         starters1, starters2 = process_trade(team1, team2, starters1,
                                              starters2, trade)
         pd_12 = expected_pd(starters1, starters2, year, off_only=True)
-        pd_21 = expected_pd(starters2, starters1, year, def_only=True)
+        pd_21 = expected_pd(starters1, starters2, year, def_only=True)
         idx1 = team_idxs[team1]
         idx2 = team_idxs[team2]
         grid[idx1, idx2] = pd_12
