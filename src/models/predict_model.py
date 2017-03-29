@@ -13,7 +13,7 @@ from src import helpers
 from src.models import train_model
 
 dr_model = joblib.load('models/dr_model.pkl')
-reg_model = joblib.load('models/regression_model.pkl').set_params(verbose=0)
+reg_model = joblib.load('models/regression_model.pkl')
 
 # 1. load regular profiles and compute RAPM for each player
 print 'Please wait while loading profiles...'
@@ -38,7 +38,7 @@ def expected_pd(off_players, def_players, season,
     rp_val = rapm.loc['RP', season]
 
     off_rapm = [rapm.get((op, season), rp_val) for op in off_players]
-    off_players = np.array(off_players)[np.argsort(off_rapm)][::-1]
+    off_players = np.array(off_players)[np.argsort(-np.array(off_rapm))]
     off_feats = pd.DataFrame(pd.concat([
         latent_profiles.loc[op, season]
         if (op, season) in latent_profiles.index else
@@ -47,7 +47,7 @@ def expected_pd(off_players, def_players, season,
     ])).T.reset_index(drop=True)
 
     def_rapm = [rapm.get((dp, season), rp_val) for dp in def_players]
-    def_players = np.array(def_players)[np.argsort(def_rapm)][::-1]
+    def_players = np.array(def_players)[np.argsort(-np.array(def_rapm))]
     def_feats = pd.DataFrame(pd.concat([
         latent_profiles.loc[dp, season]
         if (dp, season) in latent_profiles.index else
@@ -56,9 +56,9 @@ def expected_pd(off_players, def_players, season,
     ])).T.reset_index(drop=True)
 
     X_off = pd.concat((off_feats, def_feats), axis=1)
-    X_off['hm_off'] = True
+    X_off.insert(0, 'hm_off', True)
     X_def = pd.concat((def_feats, off_feats), axis=1)
-    X_def['hm_off'] = True
+    X_def.insert(0, 'hm_off', True)
 
     if off_only:
         return 100. * reg_model.predict(X_off)[0]
@@ -114,7 +114,6 @@ def evaluate_game(bsid):
     }
 
 
-@decorators.memoize
 def evaluate_team_schedule(team_id, year):
     team = nba.Team(team_id)
     schedule = team.schedule(year)
@@ -253,21 +252,31 @@ def evaluate_trade(team1, team2, player1, player2, year):
 
 
 @decorators.memoize
+def evaluate_trades_two_teams(teams):
+    print 'evaluating trades between {} and {}'.format(*teams)
+    starters = [get_starters(team, year) for team in teams]
+    trade_results = []
+    for players in itertools.product(*starters):
+        ppps, ranks = evaluate_trade(teams[0], teams[1], players[0],
+                                     players[1], year)
+        result = {
+            'player1': players[0], 'player2': players[1],
+            '{}_ppp_adv'.format(teams[0]): ppps[0],
+            '{}_ppp_adv'.format(teams[1]): ppps[1],
+            '{}_rank_adv'.format(teams[0]): ranks[0],
+            '{}_rank_adv'.format(teams[1]): ranks[1],
+        }
+        trade_results.append(result)
+    return pd.DataFrame(trade_results)
+
+
 def evaluate_all_trades(year):
     season = nba.Season(year)
     team_ids = season.get_team_ids()
     trade_results = []
-    for teams in itertools.combinations(team_ids, 2):
-        print 'evaluating trades between {} and {}'.format(*teams)
-        starters = [get_starters(team, year) for team in teams]
-        for players in itertools.product(*starters):
-            ppps, ranks = evaluate_trade(teams[0], teams[1], players[0],
-                                         players[1], year)
-            result = {
-                'team1': teams[0], 'team2': teams[1],
-                'player1': players[0], 'player2': players[1],
-                'team1_ppp_adv': ppps[0], 'team2_ppp_adv': ppps[1],
-                'team1_rank_adv': ranks[0], 'team2_rank_adv': ranks[1]
-            }
-            trade_results.append(result)
-    return pd.DataFrame(trade_results)
+    team_combs = db.from_sequence(itertools.combinations(team_ids, 2))
+    with diagnostics.ProgressBar():
+        dfs = team_combs.map(
+            evaluate_trades_two_teams
+        ).compute(get=dask.multiprocessing.get)
+    return pd.concat(dfs)
