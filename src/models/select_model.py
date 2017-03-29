@@ -40,7 +40,7 @@ dr_param_grids = {
 }
 reg_ests = {
     'lin_reg': linear_model.LinearRegression(),
-    'rf': ensemble.RandomForestRegressor(n_jobs=1, n_estimators=100),
+    'rf': ensemble.RandomForestRegressor(n_jobs=n_jobs, n_estimators=100),
     'gb': xgb.XGBRegressor(n_estimators=200)
 }
 reg_param_grids = {
