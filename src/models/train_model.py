@@ -27,7 +27,7 @@ seasons = seasons_train + seasons_test
 
 dr_est = manifold.Isomap(n_components=5, n_neighbors=10)
 reg_est = ensemble.RandomForestRegressor(
-    max_depth=None, n_estimators=1000, n_jobs=n_jobs, verbose=3
+    max_depth=3, n_estimators=300, n_jobs=n_jobs, verbose=3
 )
 
 
@@ -82,7 +82,7 @@ def _design_matrix_one_season(args):
 
 def create_design_matrix(lineups, profiles, seasons, rapm, hm_off):
     seasons_uniq = np.unique(seasons)
-    pool = mp.Pool(min(n_jobs, 4))
+    pool = mp.Pool(min(n_jobs, len(seasons_uniq)))
     args_to_eval = [
         (lineups[seasons == s], profiles.xs(s, level=1), rapm.xs(s, level=1),
          hm_off[seasons == s])
