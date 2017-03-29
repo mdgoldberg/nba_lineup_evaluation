@@ -24,30 +24,26 @@ n_jobs = int(os.environ.get('SLURM_NTASKS', mp.cpu_count()-1))
 seasons = range(2012, 2015) # 11-12, 12-13, 13-14
 
 dr_ests = {
-    'pca': decomposition.PCA(n_components=10),
-    'isomap': manifold.Isomap(n_components=10, n_jobs=n_jobs),
-    'lle': manifold.LocallyLinearEmbedding(n_components=10, n_jobs=n_jobs)
+    'pca': decomposition.PCA(),
 }
 dr_param_grids = {
-    'pca': {},
-    'isomap': {
-        'n_neighbors': [10, 50]
+    'pca': {
+        'n_components': [0.5, 0.75, 0.9]
     },
-    'lle': {
-        'n_neighbors': [10, 50]
-    }
 }
 reg_ests = {
     'lin_reg': linear_model.LinearRegression(n_jobs=n_jobs),
-    'rf': ensemble.RandomForestRegressor(n_jobs=n_jobs, n_estimators=100),
-    'gb': ensemble.GradientBoostingRegressor(n_estimators=100)
+    'rf': ensemble.RandomForestRegressor(n_jobs=n_jobs, n_estimators=200),
+    'gb': ensemble.GradientBoostingRegressor(n_estimators=200)
 }
 reg_param_grids = {
     'lin_reg': {},
-    'rf': {},
+    'rf': {
+        'max_features': [0.5, 0.75, 1.],
+    },
     'gb': {
         'learning_rate': [.01, .1],
-        'max_depth': [3, 4, 5],
+        'max_depth': [3, 5, 7],
     }
 }
 
