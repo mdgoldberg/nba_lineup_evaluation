@@ -21,7 +21,8 @@ profile_dfs = [
     helpers.get_profiles_data(season) for season in range(2007, 2017)
 ]
 profile_df = pd.concat(profile_dfs)
-rapm = profile_df.loc[:, ['orapm', 'drapm']].sum(axis=1)
+rapm = profile_df.loc[:, ['orapm', 'drapm']]
+tot_rapm = rapm.sum(axis=1)
 
 # 2. load latent profiles for use in create_design_matrix
 profiles_scaled = (
@@ -35,25 +36,35 @@ print 'Done loading profiles!'
 
 def expected_pd(off_players, def_players, season,
                 off_only=False, def_only=False):
-    rp_val = rapm.loc['RP', season]
 
-    off_rapm = [rapm.get((op, season), rp_val) for op in off_players]
+    rp_val = tot_rapm.loc['RP', season]
+    rp_prof = latent_profiles.loc['RP', season]
+
+    off_rapm = [tot_rapm.get((op, season), rp_val) for op in off_players]
     off_players = np.array(off_players)[np.argsort(-np.array(off_rapm))]
-    off_feats = pd.DataFrame(pd.concat([
-        latent_profiles.loc[op, season]
+    off_feat_frame_tups = [
+        (rapm.loc[(op, season), ['orapm']], latent_profiles.loc[op, season])
         if (op, season) in latent_profiles.index else
-        latent_profiles.loc['RP', season]
+        (rapm.loc[('RP', season), ['orapm']], rp_prof)
         for op in off_players
-    ])).T.reset_index(drop=True)
+    ]
+    off_feat_frames = [item for tup in off_feat_frame_tups for item in tup]
+    off_feats = pd.DataFrame(pd.concat(
+        off_feat_frames
+    )).T.reset_index(drop=True)
 
-    def_rapm = [rapm.get((dp, season), rp_val) for dp in def_players]
+    def_rapm = [tot_rapm.get((dp, season), rp_val) for dp in def_players]
     def_players = np.array(def_players)[np.argsort(-np.array(def_rapm))]
-    def_feats = pd.DataFrame(pd.concat([
-        latent_profiles.loc[dp, season]
+    def_feat_frame_tups = [
+        (rapm.loc[(dp, season), ['drapm']], latent_profiles.loc[dp, season])
         if (dp, season) in latent_profiles.index else
-        latent_profiles.loc['RP', season]
+        (rapm.loc[('RP', season), ['drapm']], rp_prof)
         for dp in def_players
-    ])).T.reset_index(drop=True)
+    ]
+    def_feat_frames = [item for tup in def_feat_frame_tups for item in tup]
+    def_feats = pd.DataFrame(pd.concat(
+        def_feat_frames
+    )).T.reset_index(drop=True)
 
     X_off = pd.concat((off_feats, def_feats), axis=1)
     X_off.insert(0, 'hm_off', True)
