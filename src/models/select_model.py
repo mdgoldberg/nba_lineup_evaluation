@@ -21,7 +21,7 @@ dotenv.load_dotenv(env_path)
 PROJ_DIR = os.environ['PROJ_DIR']
 n_jobs = int(os.environ.get('SLURM_NTASKS', mp.cpu_count()-1))
 
-seasons = np.random.choice(range(2007, 2015), 3)
+seasons = range(2012, 2015)
 
 dr_ests = {
     'pca': decomposition.PCA(n_components=5),
