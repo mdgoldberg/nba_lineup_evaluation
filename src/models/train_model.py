@@ -26,7 +26,7 @@ seasons_train = range(2007, 2015)
 seasons_test = range(2015, 2017)
 seasons = seasons_train + seasons_test
 
-dr_est = decomposition.PCA(n_components=0.5)
+dr_est = decomposition.PCA(n_components=3)
 reg_est = linear_model.LinearRegression(
     n_jobs=n_jobs
 )
