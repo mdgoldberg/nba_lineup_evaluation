@@ -63,13 +63,13 @@ def _design_matrix_one_season(args):
     def_rapm_sums = def_rapm.sum(axis=1)
 
     new_sub_y = np.concatenate((sub_y[sub_hm_off], sub_y[~sub_hm_off]))
-    new_sub_y -= off_rapm_sums
-    new_sub_y += def_rapm_sums
+    new_sub_y = new_sub_y - off_rapm_sums
+    new_sub_y = new_sub_y + def_rapm_sums
 
     merged_df = pd.DataFrame()
     n_hm_off = len(hm_off_df)
-    merged_df['hm_off'] = [i < n_hm_off for i in range(len(merged_df))]
     merged_df['y'] = new_sub_y
+    merged_df['hm_off'] = [i < n_hm_off for i in range(len(merged_df))]
 
     return merged_df
 
