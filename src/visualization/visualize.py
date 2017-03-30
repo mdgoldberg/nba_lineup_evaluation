@@ -49,7 +49,9 @@ def plot_matrix(grid, out_filename=None):
     ax.set_ylabel(grid.index.name)
     fig.tight_layout()
     if out_filename:
-        fig.savefig(os.path.join(PROJ_DIR, 'data', 'figures', out_filename))
+        fig.savefig(os.path.join(
+            PROJ_DIR, 'reports', 'thesis', 'figures', out_filename
+        ))
     else:
         plt.show()
 

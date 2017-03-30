@@ -9,7 +9,8 @@ from dask import delayed
 import dotenv
 import numpy as np
 import pandas as pd
-from sklearn import ensemble, manifold, metrics, model_selection
+from sklearn import (decomposition, linear_model, manifold, metrics,
+                     model_selection)
 from sklearn.externals import joblib
 
 from sportsref import nba
@@ -21,14 +22,13 @@ dotenv.load_dotenv(env_path)
 PROJ_DIR = os.environ['PROJ_DIR']
 n_jobs = int(os.environ.get('SLURM_NTASKS', mp.cpu_count()-1))
 
-seasons_train = range(2010, 2015)
+seasons_train = range(2007, 2015)
 seasons_test = range(2015, 2017)
 seasons = seasons_train + seasons_test
 
-# TODO
-dr_est = manifold.Isomap(n_components=5, n_neighbors=10)
-reg_est = ensemble.RandomForestRegressor(
-    max_depth=3, n_estimators=250, n_jobs=n_jobs, verbose=3
+dr_est = decomposition.PCA(n_components=0.5)
+reg_est = linear_model.LinearRegression(
+    n_jobs=n_jobs
 )
 
 
@@ -44,6 +44,8 @@ def _design_matrix_one_season(args):
     logger = get_logger()
     logger.info('starting _design_matrix_one_season')
     lineups, sub_profs, sub_rapm, sub_hm_off, sub_y = args
+    sub_odrapm = pd.DataFrame(sub_rapm)
+    sub_rapm = sub_rapm.sum(axis=1)
     hm_lineups = lineups.ix[:, nba.pbp.HM_LINEUP_COLS]
     aw_lineups = lineups.ix[:, nba.pbp.AW_LINEUP_COLS]
     rp_val = sub_rapm.loc['RP']
@@ -58,9 +60,9 @@ def _design_matrix_one_season(args):
         lambda r: r[aw_rapm_idxs.loc[r.name]].values, axis=1
     )
     hm_off_df = pd.concat((hm_lineups[sub_hm_off], aw_lineups[sub_hm_off]),
-                           axis=1)
+                          axis=1)
     aw_off_df = pd.concat((aw_lineups[~sub_hm_off], hm_lineups[~sub_hm_off]),
-                           axis=1)
+                          axis=1)
     cols = ['{}_player{}'.format(tm, i)
             for tm in ['off', 'def'] for i in range(1, 6)]
     hm_off_df.columns = cols
@@ -72,14 +74,33 @@ def _design_matrix_one_season(args):
         sub_profs.columns = [
             '{}_{}'.format(i, col) for i in range(sub_profs.shape[1])
         ]
+        if col.startswith('off'):
+            orapm_merge = sub_odrapm[['orapm']]
+            merged_df = pd.merge(
+                merged_df, orapm_merge,
+                how='left', left_on=col, right_index=True
+            ).fillna(orapm_merge.loc['RP'])
+        else:
+            drapm_merge = sub_odrapm[['drapm']]
+            merged_df = pd.merge(
+                merged_df, drapm_merge,
+                how='left', left_on=col, right_index=True
+            ).fillna(drapm_merge.loc['RP'])
+
+        orapm_col = 'orapm_{}'.format(col)
+        drapm_col = 'drapm_{}'.format(col)
+        merged_df.rename(
+            columns={'orapm': orapm_col, 'drapm': drapm_col}, inplace=True
+        )
+
         merged_df = pd.merge(
-            merged_df, sub_profs, how='left',
-            left_on=col, right_index=True
+            merged_df, sub_profs, how='left', left_on=col, right_index=True
         ).fillna(sub_profs.loc['RP'])
 
     merged_df.drop(cols, axis=1, inplace=True)
     new_sub_y = np.concatenate((sub_y[sub_hm_off], sub_y[~sub_hm_off]))
     merged_df['y'] = new_sub_y
+    logger.info('columns: {}'.format(merged_df.columns))
     return merged_df
 
 
@@ -107,7 +128,7 @@ if __name__ == '__main__':
         helpers.get_profiles_data(season) for season in seasons
     ]
     profile_df = pd.concat(profile_dfs)
-    rapm = profile_df.loc[:, ['orapm', 'drapm']].sum(axis=1)
+    rapm = profile_df.loc[:, ['orapm', 'drapm']]
     profiles_scaled = (
         profile_df.groupby(level=1)
         .transform(lambda x: (x - x.mean()) / x.std())

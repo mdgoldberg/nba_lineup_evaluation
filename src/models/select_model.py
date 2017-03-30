@@ -21,7 +21,7 @@ dotenv.load_dotenv(env_path)
 PROJ_DIR = os.environ['PROJ_DIR']
 n_jobs = int(os.environ.get('SLURM_NTASKS', mp.cpu_count()-1))
 
-seasons = range(2012, 2015) # 11-12, 12-13, 13-14
+seasons = np.random.choice(range(2007, 2015), 3)
 
 dr_ests = {
     'pca': decomposition.PCA(),
@@ -33,17 +33,18 @@ dr_param_grids = {
 }
 reg_ests = {
     'lin_reg': linear_model.LinearRegression(n_jobs=n_jobs),
-    'rf': ensemble.RandomForestRegressor(n_jobs=n_jobs, n_estimators=200),
-    'gb': ensemble.GradientBoostingRegressor(n_estimators=200)
+    'rf': ensemble.RandomForestRegressor(n_jobs=n_jobs, n_estimators=100),
+    'gb': ensemble.GradientBoostingRegressor(n_estimators=100)
 }
 reg_param_grids = {
     'lin_reg': {},
     'rf': {
-        'max_features': [0.5, 0.75, 1.],
+        'max_features': [.25, 1.],
+        'max_depth': [3, 10, None]
     },
     'gb': {
-        'learning_rate': [.01, .1],
-        'max_depth': [3, 5, 7],
+        'learning_rate': [.1, .2],
+        'max_depth': [3, 7],
     }
 }
 
@@ -57,9 +58,13 @@ def get_logger():
 
 
 def _design_matrix_one_season(args):
-    lineups, sub_profs, sub_rapm, sub_hm_off, sub_y = args
-    hm_lineups = lineups.ix[:, nba.pbp.HM_LINEUP_COLS]
-    aw_lineups = lineups.ix[:, nba.pbp.AW_LINEUP_COLS]
+    logger = get_logger()
+    logger.info('starting _design_matrix_one_season')
+    sub_lineups, sub_profs, sub_rapm, sub_hm_off, sub_y = args
+    sub_odrapm = pd.DataFrame(sub_rapm)
+    sub_rapm = sub_rapm.sum(axis=1)
+    hm_lineups = sub_lineups.ix[:, nba.pbp.HM_LINEUP_COLS]
+    aw_lineups = sub_lineups.ix[:, nba.pbp.AW_LINEUP_COLS]
     rp_val = sub_rapm.loc['RP']
     hm_rapm = hm_lineups.applymap(lambda p: sub_rapm.get(p, rp_val))
     aw_rapm = aw_lineups.applymap(lambda p: sub_rapm.get(p, rp_val))
@@ -72,9 +77,9 @@ def _design_matrix_one_season(args):
         lambda r: r[aw_rapm_idxs.loc[r.name]].values, axis=1
     )
     hm_off_df = pd.concat((hm_lineups[sub_hm_off], aw_lineups[sub_hm_off]),
-                           axis=1)
+                          axis=1)
     aw_off_df = pd.concat((aw_lineups[~sub_hm_off], hm_lineups[~sub_hm_off]),
-                           axis=1)
+                          axis=1)
     cols = ['{}_player{}'.format(tm, i)
             for tm in ['off', 'def'] for i in range(1, 6)]
     hm_off_df.columns = cols
@@ -86,9 +91,27 @@ def _design_matrix_one_season(args):
         sub_profs.columns = [
             '{}_{}'.format(i, col) for i in range(sub_profs.shape[1])
         ]
+        if col.startswith('off'):
+            orapm_merge = sub_odrapm[['orapm']]
+            merged_df = pd.merge(
+                merged_df, orapm_merge,
+                how='left', left_on=col, right_index=True
+            ).fillna(orapm_merge.loc['RP'])
+        else:
+            drapm_merge = sub_odrapm[['drapm']]
+            merged_df = pd.merge(
+                merged_df, drapm_merge,
+                how='left', left_on=col, right_index=True
+            ).fillna(drapm_merge.loc['RP'])
+
+        orapm_col = 'orapm_{}'.format(col)
+        drapm_col = 'drapm_{}'.format(col)
+        merged_df.rename(
+            columns={'orapm': orapm_col, 'drapm': drapm_col}, inplace=True
+        )
+
         merged_df = pd.merge(
-            merged_df, sub_profs, how='left',
-            left_on=col, right_index=True
+            merged_df, sub_profs, how='left', left_on=col, right_index=True
         ).fillna(sub_profs.loc['RP'])
 
     merged_df.drop(cols, axis=1, inplace=True)
@@ -106,7 +129,8 @@ def create_design_matrix(lineups, profiles, seasons, rapm, hm_off, y):
          hm_off[seasons == s], y[seasons == s])
         for s in seasons_uniq
     ]
-    df = pd.concat(pool.map(_design_matrix_one_season, args_to_eval))
+    # df = pd.concat(pool.map(_design_matrix_one_season, args_to_eval))
+    df = pd.concat(map(_design_matrix_one_season, args_to_eval))
     y = df.pop('y')
     return df, y
 
@@ -120,7 +144,7 @@ profile_dfs = [
     helpers.get_profiles_data(season) for season in seasons
 ]
 profile_df = pd.concat(profile_dfs)
-rapm = profile_df.loc[:, ['orapm', 'drapm']].sum(axis=1)
+rapm = profile_df.loc[:, ['orapm', 'drapm']]
 profiles_scaled = (
     profile_df.groupby(level=1).transform(lambda x: (x - x.mean()) / x.std())
 )
