@@ -19,11 +19,11 @@ dotenv.load_dotenv(env_path)
 PROJ_DIR = os.environ['PROJ_DIR']
 n_jobs = os.environ.get('SLURM_NTASKS', mp.cpu_count()-1)
 
-seasons_train = range(2010, 2015)
+seasons_train = range(2007, 2015)
 seasons_test = range(2015, 2017)
 seasons = seasons_train + seasons_test
 
-reg_est = linear_model.LinearRegression()
+reg_est = linear_model.LinearRegression(n_jobs=n_jobs)
 
 def get_logger():
     logging.config.fileConfig(
@@ -56,16 +56,19 @@ def _design_matrix_one_season(args):
 
     rp_oval = sub_orapm.loc['RP']
     off_rapm = off_df.applymap(lambda p: sub_orapm.get(p, rp_oval))
-    off_rapm = off_rapm.apply(np.sort, axis=1)
+    off_rapm_sums = off_rapm.sum(axis=1)
 
     rp_dval = sub_drapm.loc['RP']
     def_rapm = def_df.applymap(lambda p: sub_drapm.get(p, rp_oval))
-    def_rapm = def_rapm.apply(np.sort, axis=1)
+    def_rapm_sums = def_rapm.sum(axis=1)
 
-    merged_df = pd.concat((off_rapm, def_rapm), axis=1)
+    new_sub_y = np.concatenate((sub_y[sub_hm_off], sub_y[~sub_hm_off]))
+    new_sub_y -= off_rapm_sums
+    new_sub_y += def_rapm_sums
+
+    merged_df = pd.DataFrame()
     n_hm_off = len(hm_off_df)
     merged_df['hm_off'] = [i < n_hm_off for i in range(len(merged_df))]
-    new_sub_y = np.concatenate((sub_y[sub_hm_off], sub_y[~sub_hm_off]))
     merged_df['y'] = new_sub_y
 
     return merged_df
