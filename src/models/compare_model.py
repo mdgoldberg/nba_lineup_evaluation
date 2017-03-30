@@ -76,13 +76,12 @@ def _design_matrix_one_season(args):
 
 def create_design_matrix(lineups, orapm, drapm, seasons, hm_off, y):
     seasons_uniq = np.unique(seasons)
-    pool = mp.Pool(min(4, n_jobs))
     args_to_eval = [
         (lineups[seasons == s], orapm.xs(s, level=1), drapm.xs(s, level=1),
          hm_off[seasons == s], y[seasons == s])
         for s in seasons_uniq
     ]
-    df = pd.concat(pool.map(_design_matrix_one_season, args_to_eval))
+    df = pd.concat(map(_design_matrix_one_season, args_to_eval))
     y = df.pop('y')
     return df, y
 

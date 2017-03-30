@@ -5,7 +5,7 @@
 #SBATCH -n 4
 #SBATCH -N 1
 #SBATCH -t 1-00:00
-#SBATCH --mem 120000
+#SBATCH --mem 80000
 #SBATCH -o logs/compare_model.out
 #SBATCH -e logs/compare_model.err
 
