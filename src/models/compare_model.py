@@ -17,13 +17,12 @@ from src import helpers
 env_path = dotenv.find_dotenv()
 dotenv.load_dotenv(env_path)
 PROJ_DIR = os.environ['PROJ_DIR']
-n_jobs = os.environ.get('SLURM_NTASKS', mp.cpu_count()-1)
 
 seasons_train = range(2007, 2015)
 seasons_test = range(2015, 2017)
 seasons = seasons_train + seasons_test
 
-reg_est = linear_model.LinearRegression(n_jobs=n_jobs)
+reg_est = linear_model.LinearRegression()
 
 def get_logger():
     logging.config.fileConfig(
@@ -87,7 +86,6 @@ def create_design_matrix(lineups, orapm, drapm, seasons, hm_off, y):
 
 
 logger = get_logger()
-logger.info('n_jobs: {}'.format(n_jobs))
 
 # load and combine all player-season profiles and standardize within season
 logger.info('loading profiles...')

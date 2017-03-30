@@ -20,16 +20,13 @@ from src import helpers
 env_path = dotenv.find_dotenv()
 dotenv.load_dotenv(env_path)
 PROJ_DIR = os.environ['PROJ_DIR']
-n_jobs = int(os.environ.get('SLURM_NTASKS', mp.cpu_count()-1))
 
 seasons_train = range(2007, 2015)
 seasons_test = range(2015, 2017)
 seasons = seasons_train + seasons_test
 
 dr_est = decomposition.PCA(n_components=3)
-reg_est = linear_model.LinearRegression(
-    n_jobs=n_jobs
-)
+reg_est = linear_model.LinearRegression()
 
 
 def get_logger():
@@ -106,13 +103,12 @@ def _design_matrix_one_season(args):
 
 def create_design_matrix(lineups, profiles, seasons, rapm, hm_off, y):
     seasons_uniq = np.unique(seasons)
-    pool = mp.Pool(min(n_jobs, len(seasons_uniq)))
     args_to_eval = [
         (lineups[seasons == s], profiles.xs(s, level=1), rapm.xs(s, level=1),
          hm_off[seasons == s], y[seasons == s])
         for s in seasons_uniq
     ]
-    df = pd.concat(pool.map(_design_matrix_one_season, args_to_eval))
+    df = pd.concat(map(_design_matrix_one_season, args_to_eval))
     y = df.pop('y')
     return df, y
 
@@ -120,7 +116,6 @@ def create_design_matrix(lineups, profiles, seasons, rapm, hm_off, y):
 if __name__ == '__main__':
 
     logger = get_logger()
-    logger.info('n_jobs: {}'.format(n_jobs))
 
     # load and combine all player-season profiles and standardize within season
     logger.info('loading profiles...')

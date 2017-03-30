@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH -p general
+#SBATCH -p serial_requeue
 #SBATCH -J compare_model
-#SBATCH -n 4
+#SBATCH -n 1
 #SBATCH -N 1
 #SBATCH -t 1-00:00
 #SBATCH --mem 80000
