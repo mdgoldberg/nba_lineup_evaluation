@@ -37,36 +37,36 @@ difference between a player's team's points and the opposing team's points while
 player is on the floor. Raw plus/minus was first used in hockey in the mid-20th
 century and became an official National Hockey League statistic in 1968; many years
 later, the statistic was introduced in basketball and was ultimately adopted by the
-NBA in the mid-2000s (CITE).
+NBA in the mid-2000s \cite{SportingCharts}.
 
 Although this metric has the correct intention, it has several flaws. First, it
 fails to consider the relative strength of the team on which a player plays. For
 example, Anthony Davis is widely considered a superstar for the New Orleans Pelicans
-but had a raw plus/minus of -217 in the 2015-16 season. It would be misguided to
-conclude that Anthony Davis is a negative influence on the Pelicans; in fact, all
-but two players on the Pelicans had a negative raw plus/minus, and none had a raw
-plus/minus greater than 20, as the team finished with a poor record of 30 wins and
-52 losses. A second, related flaw of raw plus/minus is that it fails to consider the
-teammates with which and the opponents against which a player frequently plays. This
-can be an issue when evaluating lineups containing particularly good or bad players;
-for example, Udonis Haslem was able to accumulate a raw plus/minus of +258 with the
-2012-13 Miami Heat because he started the majority of the season's games with stars
-like LeBron James, Dwyane Wade, and Chris Bosh. Again, it would be foolish to
-conclude that Haslem's 2012-13 season was superior to Davis's 2015-16 season based
-on their raw plus/minus numbers. Moreover, raw plus/minus fails to consider the
-quality of one's opponents, so a player who frequently plays against another team's
-starters will be judged the same as a player who typically plays against another
-team's backups.
+but had a raw plus/minus of -217 in the 2015-16 season \cite{BKRef}. It would be
+misguided to conclude that Anthony Davis is a negative influence on the Pelicans; in
+fact, all but two players on the Pelicans had a negative raw plus/minus, and none
+had a raw plus/minus greater than 20, as the team finished with a poor record of 30
+wins and 52 losses. A second, related flaw of raw plus/minus is that it fails to
+consider the teammates with which and the opponents against which a player
+frequently plays. This can be an issue when evaluating lineups containing
+particularly good or bad players; for example, Udonis Haslem was able to accumulate
+a raw plus/minus of +258 with the 2012-13 Miami Heat because he started the majority
+of the season's games with stars like LeBron James, Dwyane Wade, and Chris Bosh
+\cite{BKRef}. Again, it would be foolish to conclude that Haslem's 2012-13 season
+was superior to Davis's 2015-16 season based on their raw plus/minus numbers.
+Moreover, raw plus/minus fails to consider the quality of one's opponents, so a
+player who frequently plays against another team's starters will be judged the same
+as a player who typically plays against another team's backups.
 
 Many extensions and modifications of raw plus/minus have been made to overcome these
 flaws. The first such metric is net plus/minus, which is defined for a player as a
 team's point differential when the player is on the court minus the team's point
-differential when the player is not on the court (CITE). This metric alleviates the
-first concern about raw plus/minus by comparing the player's raw plus/minus to a
-baseline of the team's point differential without the player, rather than raw
-plus/minus's implicit baseline of 0 (note that when a team's point differential
-without a player is zero, that player's net plus/minus is equivalent to his raw
-plus/minus).  Therefore, when a team is particularly bad, their players who
+differential when the player is not on the court \cite{Roland}. This metric
+alleviates the first concern about raw plus/minus by comparing the player's raw
+plus/minus to a baseline of the team's point differential without the player, rather
+than raw plus/minus's implicit baseline of 0 (note that when a team's point
+differential without a player is zero, that player's net plus/minus is equivalent to
+his raw plus/minus).  Therefore, when a team is particularly bad, their players who
 contribute relatively positively are still able to achieve a positive net
 plus/minus, as their team is better with them than without them. Likewise, a poor
 player who achieves a high raw plus/minus by simply playing with a great team that
@@ -79,16 +79,16 @@ than by their own individual contributions.
 
 To explicitly control for a player's teammates and opponents, analysts have extended
 the plus/minus idea even further to create a metric called adjusted plus/minus (APM)
-(CITE). APM accounts for the shortcomings of raw and net plus/minus by explicitly
-controlling for a player's teammates and opponents on each possession in order to
-estimate the player's effect on the team's point differential, compared to an
-average player. The APM framework marks a distinctive shift from simpler statistics
-like net plus/minus in that its computation is not as straightforward as simply
-aggregating point differentials; instead, it is computed using a linear regression
-where the unit of observation is a possession, the predictors are indicators
-representing whether a given player is on the floor, and the response variable is
-the points scored on the possession. Specifically, this thesis will assume the
-following model for adjusted plus/minus, taken from Ilardi (CITE):
+\cite{Rosenbaum}. APM accounts for the shortcomings of raw and net plus/minus by
+explicitly controlling for a player's teammates and opponents on each possession in
+order to estimate the player's effect on the team's point differential, compared to
+an average player. The APM framework marks a distinctive shift from simpler
+statistics like net plus/minus in that its computation is not as straightforward as
+simply aggregating point differentials; instead, it is computed using a linear
+regression where the unit of observation is a possession, the predictors are
+indicators representing whether a given player is on the floor, and the response
+variable is the points scored on the possession. Specifically, this thesis will
+assume the following model for adjusted plus/minus, taken from \citet{Ilardi}:
 \begin{equation} \label{eq:apm}
     y_i = \sum_{o \in P} \beta_{\text{off},o} x_{\text{off},io} -
     \sum_{d \in P} \beta_{\text{def},d} x_{\text{def},id} + \beta_{\text{HCA}}
@@ -134,9 +134,9 @@ this tends to be a reasonable simplifying assumption for the problem at hand bec
 APM and its variants are generally used to estimate a player's contribution for a
 single year, during which a player's skill level is unlikely to fluctuate
 significantly. However, some research has been done to allow changes over time in
-APM estimates (CITE).
+APM estimates \cite{Fearnhead}.
 
-To address the issues of multicollinearity and overfitting, Sill (2010) (CITE)
+To address the issues of multicollinearity and overfitting, \citet{Sill}
 introduces the concept of regularization to the adjusted plus/minus framework,
 leading to the creation of Regularized Adjusted Plus/Minus (RAPM). Each player’s
 RAPM is estimated by the same linear regression model used for APM, given in
@@ -166,10 +166,10 @@ estimates $\hat\beta$ are equal to the true values of $\beta$ in expectation.
 However, unbiasedness comes at the cost of higher variance due to the bias-variance
 tradeoff, and as a result ordinary least squares is prone to failure in situations
 with high multicollinearity or high dimensionality relative to the size of the
-training data (CITE: paper plus Bishop). Regulariation solves this problem by
-introducing some bias to the OLS estimator while reducing its variance. As shown in
-Sill (CITE), introducing regularization significantly improved the accuracy of
-the APM model (as measured in root-mean-squared-error) when predicting out-of-sample
+training data \cite{Ridge,Bishop}. Regulariation solves this problem by introducing
+some bias to the OLS estimator while reducing its variance. As shown in
+\citet{Sill}, introducing regularization significantly improved the accuracy of the
+APM model (as measured in root mean squared error) when predicting out-of-sample
 point differentials.
 
 These plus/minus metrics measure an individual player's contribution with varying
@@ -209,53 +209,53 @@ player evaluation in basketball analytics today, there has been some research
 concerning how players interact to produce outcomes that sets the groundwork for the
 approach I will take in this thesis.
 
-The research that most influenced my approach was Maymin et al (2013) (CITE
-PROPERLY). The authors introduce a framework they call ``Skills Plus/Minus'' (SPM),
-wherein a probit model is used to estimate the probability of a play ending with a
-specific outcome given which players are on the court and a few other predictors
-(e.g., which team is at home). Each player has an offensive and defensive rating
-associated with each possible play outcome. The authors then use these ratings and
-models of possession outcomes to simulate games by estimating the probabilities of
-various outcomes based on the lineups and then drawing from the corresponding
-multinomial distribution.  Using this simulation framework, the authors were able to
-determine each skill's worth, measured in points over replacement player; which
-skills combined to increase overall point differential more (or less) than the sum
-of the individual skills; how each team’s starting lineup is affected by synergies
-between players; and finally, which trades would be mutually beneficial. The main
-difference between this approach and the one I will present is that their approach
-explicitly models how synergies effect outcomes by modeling each possible outcome of
-a play, rather than simply predicting the point differential on a given play; this
-granular modeling approach results in an increase in interpretability, but a
-decrease in expressiveness. The benefit is that it allows simulation based on SPM,
-which allows one to interpret exactly how different skills interact with one
-another. The downside is that, while each outcome is dependent on all ten players on
-the court, the probability models make some simplifying assumptions and do not allow
-for interactions or nonlinearities between players due to the model specification.
+The research that most influenced my approach was \citet{Maymin}. The authors
+introduce a framework they call ``Skills Plus/Minus'' (SPM), wherein a probit model
+is used to estimate the probability of a play ending with a specific outcome given
+which players are on the court and a few other predictors (e.g., which team is at
+home). Each player has an offensive and defensive rating associated with each
+possible play outcome. The authors then use these ratings and models of possession
+outcomes to simulate games by estimating the probabilities of various outcomes based
+on the lineups and then drawing from the corresponding multinomial distribution.
+Using this simulation framework, the authors were able to determine each skill's
+worth, measured in points over replacement player; which skills combined to increase
+overall point differential more (or less) than the sum of the individual skills; how
+each team’s starting lineup is affected by synergies between players; and finally,
+which trades would be mutually beneficial. The main difference between this approach
+and the one I will present is that their approach explicitly models how synergies
+effect outcomes by modeling each possible outcome of a play, rather than simply
+predicting the point differential on a given play; this granular modeling approach
+results in an increase in interpretability, but a decrease in expressiveness. The
+benefit is that it allows simulation based on SPM, which allows one to interpret
+exactly how different skills interact with one another. The downside is that, while
+each outcome is dependent on all ten players on the court, the probability models
+make some simplifying assumptions and do not allow for interactions or
+nonlinearities between players due to the model specification.
 
-A very similar analysis was done by Kuehn (2016) (CITE PROPERLY) in which the author
-attempts to answer the question of how much a player contributes to a lineup by
-considering the probability of a possession ending with a specific outcome as
-conditional on the players involved in the game and their propensities to commit
-certain actions.  Conceptually, this is almost identical is very similar to the
-Maymin et al approach, with two main differences. First, Kuehn considers the
-substitutability of different possession-ending outcomes. For example, adding a
-talented three-point shooter to a lineup makes it less likely that his teammates
-will take three-point shots. Second, while Maymin et al (CITE PROPERLY) used
-simulation to analyze different lineups, Kuehn used the possession model, the
-estimated propensities of each player to commit each possible action, and the
-estimated substitutability of actions to analyze lineups. With this approach, Kuehn
-reported which players helped and hurt their lineups the most, and whether NBA teams
-award positive complementarities when determining how much to pay a player.
+A very similar analysis was done by \citet{Kuehn} in which the author attempts to
+answer the question of how much a player contributes to a lineup by considering the
+probability of a possession ending with a specific outcome as conditional on the
+players involved in the game and their propensities to commit certain actions.
+Conceptually, this is very similar to the \citeauthor{Maymin} approach, with two
+main differences. First, Kuehn considers the substitutability of different
+possession-ending outcomes. For example, adding a talented three-point shooter to a
+lineup makes it less likely that his teammates will take three-point shots. Second,
+while \citeauthor{Maymin} used simulation to analyze different lineups, Kuehn used
+the possession model, the estimated propensities of each player to commit each
+possible action, and the estimated substitutability of actions to analyze lineups.
+With this approach, Kuehn reported which players helped and hurt their lineups the
+most, and whether NBA teams award positive complementarities when determining how
+much to pay a player.
 
-Finally, the research of Arcidiacono et al (2015) (CITE PROPERLLY) created player
-ratings by modeling the probability of a given player scoring as a function of his
-ability to score, his teammates' ability to help him score, and his opponents'
-abilities to defend.  Fitting this probability model results in three ratings for
-each player, which the authors used evaluate players and to estimate any theoretical
-lineup's expected point differential per possession. This analysis was compelling
-because it the probability model was nonlinear and because it explicitly models how
-much each player's offensive contribution was divided between scoring itself and
-facilitating on offense.
+Finally, the research of \citet{Arcidiacono} created player ratings by modeling the
+probability of a given player scoring as a function of his ability to score, his
+teammates' ability to help him score, and his opponents' abilities to defend.
+Fitting this probability model results in three ratings for each player, which the
+authors used evaluate players and to estimate any theoretical lineup's expected
+point differential per possession. This analysis was compelling because it the
+probability model was nonlinear and because it explicitly models how much each
+player's offensive contribution was divided between scoring itself and facilitating
+on offense.
 
 My approach, while conceptually similar to all three of these analyses, will be
 slightly different. Roughly, the approach involves summarizing each player based on

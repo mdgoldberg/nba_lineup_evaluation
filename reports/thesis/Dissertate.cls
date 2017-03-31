@@ -219,9 +219,9 @@
 	\textsc{a dissertation presented \\ by\\
 	\theauthor\\ to\\ The Departments of \@department\\
 	\vspace{12pt}
-	in partial fulfillment of the requirements\\
+	in partial fulfillment of the honors requirements\\
 	for the degree of\\ \@degree\\
-	in the subject of\\ \@field\\
+	in the subjects of\\ \@field\\
 	\vspace{12pt}
 	\@university\\ \@universitycity, \@universitystate\\
 	\@degreemonth\ \@degreeyear}

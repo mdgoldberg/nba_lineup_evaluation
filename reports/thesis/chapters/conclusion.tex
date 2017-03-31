@@ -2,16 +2,65 @@
 \chapter{Conclusion}
 \label{conclusion}
 
-Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Morbi commodo, ipsum sed pharetra gravida, orci magna rhoncus neque, id pulvinar odio lorem non turpis. Nullam sit amet enim. Suspendisse id velit vitae ligula volutpat condimentum. Aliquam erat volutpat. Sed quis velit. Nulla facilisi. Nulla libero. Vivamus pharetra posuere sapien. Nam consectetuer. Sed aliquam, nunc eget euismod ullamcorper, lectus nunc ullamcorper orci, fermentum bibendum enim nibh eget ipsum. Donec porttitor ligula eu dolor. Maecenas vitae nulla consequat libero cursus venenatis. Nam magna enim, accumsan eu, blandit sed, blandit a, eros.
+\newthought{As shown in chapter~\ref{ch:results}, the model} trained on player
+profile data provided significantly better out-of-sample prediction accuracy
+compared to the baseline RAPM model. This provides evidence for the hypothesis that
+chemistry and complementary play styles play are critical in order to be successful
+in the NBA.  Indeed, while RAPM certainly has its use cases, such as when attempting
+to break down team outcomes and distribute responsibility to the individual level,
+the success of the model herein suggests that there is more to building a strong
+lineup than simply maximizing the squad's combined RAPM ratings.
 
-Quisque facilisis erat a dui. Nam malesuada ornare dolor. Cras gravida, diam sit amet rhoncus ornare, erat elit consectetuer erat, id egestas pede nibh eget odio. Proin tincidunt, velit vel porta elementum, magna diam molestie sapien, non aliquet massa pede eu diam. Aliquam iaculis. Fusce et ipsum et nulla tristique facilisis. Donec eget sem sit amet ligula viverra gravida. Etiam vehicula urna vel turpis. Suspendisse sagittis ante a urna. Morbi a est quis orci consequat rutrum. Nullam egestas feugiat felis. Integer adipiscing semper ligula. Nunc molestie, nisl sit amet cursus convallis, sapien lectus pretium metus, vitae pretium enim wisi id lectus. Donec vestibulum. Etiam vel nibh. Nulla facilisi. Mauris pharetra. Donec augue. Fusce ultrices, neque id dignissim ultrices, tellus mauris dictum elit, vel lacinia enim metus eu nunc.
+The primary implication of this work is that it indicates that NBA coaches and
+executives should dedicate more resources to understanding the way in which players'
+play styles and abilities interact with one another from a statistical perspective.
+Often, the focus in the NBA is solely on acquiring star talent; instead, teams
+should make it a first-class goal to build a roster that allows the coach to play
+players with complementary play styles. As seen in section~\ref{sec:lineup_ratings},
+some lineups are able to overachieve their RAPM expectations due to the way that
+their play styles interact; this fact could be advantageous for a team who wishes to
+stay competitive while maintaining enough available cap space to sign high-impact
+players in a coming offseason for example.  The principle of getting as much out of
+one's players as possible is especially crucial when a coach has to turn to his
+bench during a game. With twelve players available to play, there are 792 possible
+lineups a coach can choose from during a game; choosing the optimal lineup based on
+his players' play styles and on the lineup selected by the opposing team's coach
+without taking a principled, analytical approach would thus be nearly impossible.
+The results presented here thus motivate an increase in the degree to which
+basketball analytics are used to make in-game decisions. We have seen similar
+movements in other sports; for example, Microsoft has partnered with the National
+Football League, where players and coaches use Microsft Surface tablets to employ
+analytics software in real-time \cite{Geekwire}.  A similar movement in professional
+basketball could allow coaches to utilize models such as the one presented here in
+order to evaluate substitution decisions.
 
-Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, commodo vitae, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. Donec non enim in turpis pulvinar facilisis. Ut felis.
+There is also room for extensions of the research presented here. One possible
+extension would be to add additional features to the regression model. For example,
+one drawback of the model is that it assumes that the point outcome is only a
+function of the players on the court; additional features could include terms
+measuring fatigue of a players, such as the number of possessions that he has been
+on the court. The model could also incorporate player-tracking data, which the NBA
+began collecting at the beginning of the 2013-14 NBA season; this data could be
+incorporated into the player profiles and into the regression model directly. In
+particular, the player-tracking data could increase the signal in the player
+profiles; for example, one could quantify how a player moves without the ball or how
+often a player is involved in different types of plays, such as pick-and-rolls.
 
-Cras sed ante. Phasellus in massa. Curabitur dolor eros, gravida et, hendrerit ac, cursus non, massa. Aliquam lorem. In hac habitasse platea dictumst. Cras eu mauris. Quisque lacus. Donec ipsum. Nullam vitae sem at nunc pharetra ultricies. Vivamus elit eros, ullamcorper a, adipiscing sit amet, porttitor ut, nibh. Maecenas adipiscing mollis massa. Nunc ut dui eget nulla venenatis aliquet. Sed luctus posuere justo. Cras vehicula varius turpis. Vivamus eros metus, tristique sit amet, molestie dignissim, malesuada et, urna.
+Another extension of the research would be to analyze complementary play styles
+within rosters. While the research here focuses on evaluating lineups, NBA
+executives need to make decisions on a season level about which players should be
+acquired and which should not; these decisions come in many forms, as players can be
+acquired through trades, free agency, or the NBA draft. In constructing a roster,
+the goal is to acquire talented players while giving the coach more flexibility in
+his lineup and substitution decisions; therefore, the model presented in this thesis
+could be extended to determine the cohesion of a roster's play styles. Similarly,
+this model could be used to analyze whether a trade would have a positive impact on
+a team by determining how the new player or players would complement the players
+that remain on the roster after the trade.
 
-Cras dictum. Maecenas ut turpis. In vitae erat ac orci dignissim eleifend. Nunc quis justo. Sed vel ipsum in purus tincidunt pharetra. Sed pulvinar, felis id consectetuer malesuada, enim nisl mattis elit, a facilisis tortor nibh quis leo. Sed augue lacus, pretium vitae, molestie eget, rhoncus quis, elit. Donec in augue. Fusce orci wisi, ornare id, mollis vel, lacinia vel, massa.
-
-Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Morbi commodo, ipsum sed pharetra gravida, orci magna rhoncus neque, id pulvinar odio lorem non turpis. Nullam sit amet enim. Suspendisse id velit vitae ligula volutpat condimentum. Aliquam erat volutpat. Sed quis velit. Nulla facilisi. Nulla libero. Vivamus pharetra posuere sapien. Nam consectetuer. Sed aliquam, nunc eget euismod ullamcorper, lectus nunc ullamcorper orci, fermentum bibendum enim nibh eget ipsum. Donec porttitor ligula eu dolor. Maecenas vitae nulla consequat libero cursus venenatis. Nam magna enim, accumsan eu, blandit sed, blandit a, eros.
-
-Quisque facilisis erat a dui. Nam malesuada ornare dolor. Cras gravida, diam sit amet rhoncus ornare, erat elit consectetuer erat, id egestas pede nibh eget odio. Proin tincidunt, velit vel porta elementum, magna diam molestie sapien, non aliquet massa pede eu diam. Aliquam iaculis. Fusce et ipsum et nulla tristique facilisis. Donec eget sem sit amet ligula viverra gravida. Etiam vehicula urna vel turpis. Suspendisse sagittis ante a urna. Morbi a est quis orci consequat rutrum. Nullam egestas feugiat felis. Integer adipiscing semper ligula. Nunc molestie, nisl sit amet cursus convallis, sapien lectus pretium metus, vitae pretium enim wisi id lectus. Donec vestibulum. Etiam vel nibh. Nulla facilisi. Mauris pharetra. Donec augue. Fusce ultrices, neque id dignissim ultrices, tellus mauris dictum elit, vel lacinia enim metus eu nunc.
+While the conclusion that interactions between players' skill sets make a
+significant impact on the outcome of possessions and games in the NBA is not
+remarkable in itself, it is an important fact to consider when thinking about or
+watching basketball. Indeed, the results of this research confirm systematically
+what many NBA fans, analysts, and teams have assumed intuitively since the game was
+invented: there is more to a lineup's value than the simple sum of its parts.

@@ -16,7 +16,7 @@
 \setstretch{\dnormalspacing}
 
 % include each chapter...
-\setcounter{chapter}{-1}  % start chapter numbering at 0
+\setcounter{chapter}{0}
 \include{chapters/introduction}
 \include{chapters/data}
 \include{chapters/methods}
@@ -25,14 +25,13 @@
 
 \setstretch{\dnormalspacing}
 
-% the back matter
-\backmatter
+\begin{appendices}
+    \include{chapters/appendixA}
+\end{appendices}
 
-% \clearpage
-% \bibliography{references}
-% \addcontentsline{toc}{chapter}{References}
-% \bibliographystyle{apalike2}
-
-% \include{endmatter/colophon}
+\clearpage
+\bibliography{references}
+\addcontentsline{toc}{chapter}{References}
+\bibliographystyle{apalike2}
 
 \end{document}

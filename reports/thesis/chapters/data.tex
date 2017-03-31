@@ -1,17 +1,16 @@
 %!TEX root = ../thesis.tex
 
 \chapter{Data} \label{ch:data}
-\nocite{*}
 
 \newthought{In order to carry out the analysis herein,} it was necessary to gather
 play-by-play data with complete lineups. To do this, I collected play-by-play data
 from the past eleven completed NBA seasons, starting with the 2005-06 season and
-ending with the 2015-16 season. The data was scraped from basketball-reference.com;
-this site was chosen for several reasons. First, the website makes its data freely
-available and is organized simply and effectively, simplifying the scraping process.
-The second and more important reason the site was chosen was because it assigns
-unique identifiers to each entity for which it has data, including players, teams,
-seasons, coaches, and referees. Using these unique identifiers, it is very easy to
+ending with the 2015-16 season. The data was scraped from \citet{BKRef}; this site
+was chosen for several reasons. First, the website makes its data freely available
+and is organized simply and effectively, simplifying the scraping process.  The
+second and more important reason the site was chosen was because it assigns unique
+identifiers to each entity for which it has data, including players, teams, seasons,
+coaches, and referees. Using these unique identifiers, it is very easy to
 cross-reference and join different data sources from the site; this makes complex
 analyses simpler because there it eliminates guesswork and ambiguities in data
 wrangling. For example, while other data sources may have ambiguities arising from
@@ -26,7 +25,7 @@ am the sole creator, developer, and maintainer of the library, which was
 created to make sports analytics easier for those who understand sports and basic
 data analysis but do not have the programming knowledge to scrape data themselves.
 The library is still in the early stages of development; its code can be found on
-GitHub (CITE).
+GitHub \cite{Sportsref}.
 
 More specifically, the data used in this thesis was scraped from the play-by-play
 section that Basketball Reference provides for virtually game since the beginning of
@@ -60,14 +59,14 @@ Once the raw data was cleaned, additional features were added to the data. For
 instance, simple new features include the home and away teams' points scored on each
 event, which can be used to easily compute point differential for any subset of
 events. One very important and more complicated feature was identifying ``plays,'' a
-possession-like concept introduced by Maymin et al (CITE PROPERLY). In particular,
-the definition of a play is identical to the definition of a possession, except that
-an offensive rebound extends a possession but begins a new play. Distinguishing
-plays from possessions was important because it provides more context for the
-profile statistics described in section \ref{sec:profiles}, as each play allows
-another opportunity to log events such as field goal attempts, rebounds, assists,
-and personal fouls. Therefore, when computing rate statistics for players, it is
-more revealing to use per-play statistics than per-possession statistics.
+possession-like concept introduced by \citeauthor{Maymin}. In particular, the
+definition of a play is identical to the definition of a possession, except that an
+offensive rebound extends a possession but begins a new play. Distinguishing plays
+from possessions was important because it provides more context for the profile
+statistics described in section \ref{sec:profiles}, as each play allows another
+opportunity to log events such as field goal attempts, rebounds, assists, and
+personal fouls. Therefore, when computing rate statistics for players, it is more
+revealing to use per-play statistics than per-possession statistics.
 Differentiating plays was done by labeling events that end a play with an indicator
 variable and computing the cumulative sum of these variables to create a play
 identification number for each event. Specifically, play-ending events include
@@ -96,25 +95,33 @@ minutes played as listed in the box score. Once the starters of each period were
 determined, it is relatively straightforward to use substitution data to determine
 each team's lineup for any given event.
 
-% TODO: fix table below, pick better events
-
 \begin{table}
     \centering
     \noindent\makebox[\textwidth]{%
-\begin{tabular}{llrrlll}
+\begin{tabular}{cccccc}
 \toprule
-{} &   boxscore\_id &  secs\_elapsed &  poss\_id & off\_team & def\_team &                                             detail \\
+  boxscore\_id &  secs\_elapsed &  poss\_id & off\_team & def\_team &                        detail \\
 \midrule
-19  &  201510270ATL &         168.0 &       11 &      ATL &      DET &               teaguje01 misses 2-pt shot from 1 ft \\
-488 &  201510270CHI &         282.0 &      215 &      CHI &      CLE &                     Defensive rebound by jamesle01 \\
-152 &  201510270ATL &        1061.0 &       74 &      ATL &      DET &                     Defensive rebound by drumman01 \\
-153 &  201510270ATL &        1070.0 &       74 &      DET &      ATL &  Turnover by blakest01 (bad pass; steal by korv... \\
-729 &  201510270CHI &        1772.0 &      313 &      CLE &      CHI &                smithjr01 makes 2-pt shot from 6 ft \\
-739 &  201510270CHI &        1822.0 &      318 &      CHI &      CLE &             gibsota01 enters the game for rosede01 \\
-322 &  201510270ATL &        2327.0 &      154 &      DET &      ATL &              ilyaser01 misses 3-pt shot from 25 ft \\
-356 &  201510270ATL &        2524.0 &      167 &      DET &      ATL &                     Defensive rebound by millspa01 \\
-856 &  201510270CHI &        2582.0 &      368 &      CHI &      CLE &                  mirotni01 makes free throw 1 of 2 \\
-435 &  201510270ATL &        2851.0 &      188 &      DET &      ATL &                  caldwke01 makes free throw 1 of 2 \\
+ 201604050SAC &        2416.0 &   222933 &      SAC &      POR &                 couside01 misses free throw 1 of 1 \\
+ 201602280DAL &        2440.0 &   168496 &      DAL &      MIN &               bareajo01 misses 2-pt shot from 4 ft \\
+ 201512050TOR &        1358.0 &    57123 &      TOR &      GSW &  Personal take foul by ezelife01 (drawn by jose... \\
+ 201511290NYK &         918.0 &    48221 &      NYK &      HOU &  willide02 makes 2-pt shot at rim (assist by ga... \\
+ 201511070SAS &        2229.0 &    17897 &      CHO &      SAS &                     Defensive rebound by millspa02 \\
+ 201601040PHI &        1807.0 &    99151 &      MIN &      PHI &                      Defensive rebound by noelne01 \\
+ 201512090BOS &        1534.0 &    61355 &      CHI &      BOS &  gibsota01 misses 2-pt shot from 1 ft (block by... \\
+ 201512100CHI &        1108.0 &    63424 &      LAC &      CHI &                  redicjj01 makes free throw 2 of 2 \\
+ 201601290MIL &         453.0 &   133985 &      MIA &      MIL &            bayleje01 enters the game for antetgi01 \\
+ 201511110SAC &        2003.0 &    23768 &      DET &      SAC &              johnsst04 misses 3-pt shot from 24 ft \\
+ 201512050PHI &        2794.0 &    56839 &      PHI &      DEN &            stausni01 enters the game for mccontj01 \\
+ 201603120PHI &        2122.0 &   187975 &      PHI &      DET &                  stausni01 makes free throw 1 of 2 \\
+ 201603040BOS &         440.0 &   174876 &      BOS &      NYK &                     Defensive rebound by thomala01 \\
+ 201601300NOP &        1384.0 &   135784 &      BRK &      NOP &                 lopezbr01 misses free throw 1 of 2 \\
+ 201510300ORL &         774.0 &     5375 &      ORL &      OKC &                  fournev01 makes free throw 1 of 1 \\
+ 201511110ATL &        1271.0 &    21868 &      ATL &      NOP & New Orleans full timeout \\
+ 201601030WAS &         474.0 &    97574 &      WAS &      MIA &                     Offensive rebound by gortama01 \\
+ 201511190CLE &        1789.0 &    33784 &      MIL &      CLE &  antetgi01 makes 2-pt shot at rim (assist by pa... \\
+ 201603150IND &         388.0 &   191471 &      IND &      BOS &                  Turnover by stuckro01 (traveling) \\
+ 201602010SAC &        2153.0 &   138904 &      SAC &      MIL &                       Offensive rebound by acyqu01 \\
 \bottomrule
 \end{tabular}
     }

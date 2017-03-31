@@ -5,21 +5,18 @@
 
 \section{Exploring the Data: Cluster Analysis}
 
-In order to better understand the player profiles, I used the $k$-means clustering
-algorithm to separate player-seasons into clusters based on their tendencies. This
-algorithm works by adjusting cluster centers in order to minimize inertia, also
-known as within-cluster sum of squares:
-$$
-\sum_{i=1}^n \min_{c \in C} \lVert x_i - \mu_c \rVert^2
-$$
-where $C$ is the set of clusters and $\mu_c$ is the center of cluster $c$. The
-$k$-means algorithm was chosen over other clustering algorithms for a few reasons;
-first, it is a simple and easy-to-understand algorithm that often gives intuitive
-results and has few parameters to tune other than the number of clusters. Second,
-using inertia as the loss function for clustering assumes that clusters are convex
-and isotropic, which is a reasonable assumption for player types; in other words,
-the shapes of a cluster of players in player profile space should be roughly
-spherical, rather than elongated.
+\newthought{In order to better understand the player profiles,} I used the $k$-means
+clustering algorithm to separate player-seasons into clusters based on their
+tendencies. This algorithm works by adjusting cluster centers in order to minimize
+inertia, also known as within-cluster sum of squares: $$ \sum_{i=1}^n \min_{c \in C}
+\lVert x_i - \mu_c \rVert^2 $$ where $C$ is the set of clusters and $\mu_c$ is the
+center of cluster $c$. The $k$-means algorithm was chosen over other clustering
+algorithms for a few reasons; first, it is a simple and easy-to-understand algorithm
+that often gives intuitive results and has few parameters to tune other than the
+number of clusters. Second, using inertia as the loss function for clustering
+assumes that clusters are convex and isotropic, which is a reasonable assumption for
+player types; in other words, the shapes of a cluster of players in player profile
+space should be roughly spherical, rather than elongated.
 
 In order to apply $k$-means to the player profiles, I used player profile data from
 every season from 2006-07 to 2015-16, ignoring the ``replacement player'' category
@@ -82,7 +79,7 @@ the five traditional positions in basketball and thus the clustering would provi
 little insight.
 
 After re-applying the $k$-means algorithm with $k=8$, we arrive at cluster means as
-shown in figure~\ref{tab:clus_means}. Note that the means shown are the means of the
+shown in table~\ref{tab:clus_means}. Note that the means shown are the means of the
 data that is after standardization by year but prior to inflating the variance of
 the defense and rebounding features.
 
@@ -130,21 +127,60 @@ Offensive RAPM                 & -0.03 & -0.48 &  0.12 &  0.17 &  0.18 &  0.18 &
 \bottomrule
 \end{tabular}
     }
-    \caption{Player profile for the average member of each cluster.}
+    \caption{Player profile for the average member of each cluster, measured in
+    standard deviations from the year's mean in a given feature.}
     \label{tab:clus_means}
 \end{table}
 
-TODO: finish this
+Most of these clusters can be mapped intuitively to a known player type in the NBA.
+For example, cluster 1 seems to represent three-point specialists like Kyle Korver
+or Courtney Lee, who don't shoot often but shoot most of their shots from
+three-point range, and are successful from that range; these players typically are
+assisted on their shots rather than creating their own shots off the dribble.
+Players in cluster 2 are capable of rebounding and protecting the rim, but are
+relatively unskilled offensively other than on shots within the paint; examples
+include Timofey Mozgov and Taj Gibson. The cluster mean for cluster 3 has a positive
+field goal percentage from every distance on the court and takes a decent number of
+shots; these are typically scorers who play on the wing, like Carmelo Anthony or
+Tobias Harris. The fourth cluster comprises players who facilitate their team's
+offense through assists, shoot well, and are very effective on defense by forcing
+steals and turnovers. These are players that tend to be point guards like Chris Paul
+and Rajon Rondo, but they can also come from other positions; for example, Paul
+George and Kawhi Leonard belong to this cluster. Cluster 5 contains skilled
+offensive big men who are able to make mid-range shots and stretch the floor, such
+as Kevin Love or Tim Duncan. Members of cluster 6 tend to be very good facilitators,
+as they average the highest rate of assists per teammate field goal made, while also
+being capable shooters and subpar defenders; examples include Tony Parker, Isaiah
+Thomas, and Kyrie Irving. Cluster 7 contains bigger wings and big men who are able
+to defend at a high level; the cluster includes Ersan Ilyasova and P.J.\ Tucker.
+Finally, cluster 8 mostly contains elite rebounders and rim protectors; these are
+the stereotypical centers, such as Dwight Howard and DeAndre Jordan. Understanding
+these clusters can be helpful in interpreting some of the results below, where
+clusters allow an easy way to distill a player's profile into a single player type;
+a summary of the interpretation of these clusters is given in
+table~\ref{tab:clust_interp}.
 
-Many of these clusters intuitively describe player types in the NBA. For example,
-cluster 1 seems to represent three-point specialists, or players who don't shoot
-often but shoot most of their shots from three-point range, and are successful from
-that range; these players often make their shots 
+\begin{table}
+    \centering
+    \noindent\makebox[\textwidth]{%
+    \begin{tabular}{ccc}
+        \toprule
+        Cluster & Description & Example Player \\ \midrule
+        1 & Three-Point Specialist & Kyle Korver \\
+        2 & Big men with poor offensive skill & Timofey Mozgov \\
+        3 & Scoring wings & Carmelo Anthony \\
+        4 & Facilitator with strong defense & LeBron James \\
+        5 & Floor-stretching big men & Kevin Love \\
+        6 & Facilitator with poor defense & Tony Parker \\
+        7 & Strong defensive wings and bigs & Ersan Ilyasova \\
+        8 & Elite rebounders and rim-protectors & Dwight Howard \\
+        \bottomrule
+    \end{tabular}
+    }
+    \caption{A summary of the interpretations of the eight clusters.}
+    \label{tab:clust_interp}
+\end{table}
 
-Cluster 1: 3-pt specialist
-Cluster 2: low-usage big man with poor offense
-Cluster 3: average all-around wing
-Cluster 4: 
 
 \section{Cross-Validation Results}
 
@@ -163,7 +199,7 @@ table~\ref{tab:cv_results}.
         Optimal Hyperparameters & & N/A & \parbox[c]{3cm}{300 estimators,\\ max
         depth 3} & \parbox[c]{3cm}{300 estimators,\\ max depth 3,\\ learning
         rate 0.1} \\ \midrule
-        PCA & \parbox[c]{3cm}{5 components} & 1.263605* & 1.264270 &
+        PCA & \parbox[c]{3cm}{3 components} & 1.263605* & 1.264270 &
         1.264506 \\ \midrule
         Isomap & \parbox[c]{3cm}{5 components,\\ 5 neighbors} & 1.266315 &
         1.266019 & 1.267266 \\ \midrule
@@ -172,8 +208,9 @@ table~\ref{tab:cv_results}.
         \bottomrule
     \end{tabular}
     }
-    \caption{A summary of the results of hyperparameter tuning and
-    cross-validation.}
+    \caption{A summary of the results of hyperparameter tuning and cross-validation;
+    each entry in the table is the cross-validation root mean squared error for a
+    given combination of dimensionality reduction and regression techniques.}
     \label{tab:cv_results}
 \end{table}
 
@@ -181,19 +218,22 @@ Somewhat surprisingly, the regression model with the best performance in
 cross-validation is the simple linear regression model. Moreover, less surprisingly,
 principal components analysis beat out the nonlinear dimensionality reduction
 techniques, as models trained using PCA outperformed Isomap and LLE regardless of
-the regression model used. As noted in section~\ref{sec:regress}, the linear
-regression model does encapsulate interactions between players, to an extent; this
-is because the players are sorted in order of total RAPM, so unlike the baseline
-RAPM model discussed in the introduction and in section~\ref{sec:baseline},
+the regression model used. This is unsurprising, as there was no known non-flat
+manifold geometry known to exist in the data. As noted in section~\ref{sec:regress},
+the linear regression model does encapsulate interactions between players, to an
+extent; this is because the players are sorted in order of total RAPM, so unlike the
+baseline RAPM model discussed in the introduction and in section~\ref{sec:baseline},
 substituting player 1 for player 2 is not as simple as adding one player 1's ratings
 and subtracting player 2's ratings because the substitution can result in a
-shuffling of the order of the players in the regression, which in turn means that
-a player's feature values may be matched with different coefficients if his position
+shuffling of the order of the players in the regression, which in turn means that a
+player's feature values may be matched with different coefficients if his position
 in the sorted lineup changes as a result of the substitution. Therefore, while it is
 not a nonlinear model, this linear regression model still functions differently than
 the adjusted plus/minus model in that the effect of a substitution is not
 necessarily the same regardless of the other players on the court as it is in the
-APM model.
+APM model. Therefore, the model selected via cross-validation was to first use PCA
+with 3 components to reduce the dimensionality of the player profiles, followed by a
+simple linear regression.
 
 \section{Comparison to Baseline Model}
 \label{sec:baseline}
@@ -284,7 +324,9 @@ minute cutoff was chosen because it corresponds to an average of 10 minutes per 
 over the 82-game season; moreover, because we are evaluating players for the
 2016 season, the nine replacement players will be given the player profile for the
 2016 replacement-level player. The best and worst of these ratings are shown in
-table~\ref{tab:player_ratings}.
+table~\ref{tab:player_ratings}, which includes each player's ``points above
+replacement'' over 100 possessions as well as their ORAPM, DRAPM, and total RAPM,
+also prorated to 100 possessions.
 
 \begin{table}
     \centering
@@ -328,57 +370,199 @@ table~\ref{tab:player_ratings}.
         \end{tabular}
     }
     \caption{Top fifteen and bottom fifteen players measured by expected point
-    differential playing with nine replacement-level players.}
+    differential per 100 possessions playing with nine replacement-level players.}
     \label{tab:player_ratings}
 \end{table}
 
 There are a few things to note when interpreting these ratings. First, recall that
 player profiles are built from data from both the prior season and the first half of
-the season in question; therefore, the 2015-16 ratings are based partially on the
-2015-16 season itself and partially on the prior 2014-15 season.  Moreover, remember
-that the motivation of the player profiles model is to evaluate how the play styles
-of the members of a lineup interact with each other; having a low rating in
+the season in question; therefore, these 2015-16 ratings are based partially on the
+2015-16 season itself and partially on the prior 2014-15 season.  Moreover, the
+motivation of the player profiles model is to evaluate how the play styles of the
+members of a lineup interact with each other, so having a low rating in
 table~\ref{tab:player_ratings} simply indicates that the player would not contribute
 well to a team of replacement-level players against a team of replacement-level
 players.  However, it is still possible that the same player would be an effective
 contributor to different lineups or against different lineups.
 
-TODO: interpretation
+That said, the results of the model are very interesting. First, the names at the
+top of the list should be familiar to even the casual NBA fan; this is a good sanity
+check, as Russell Westbrook, Steph Curry, and LeBron James were widely considered
+the best three players in the league in 2016, and Curry won MVP for his performance.
+However, he did not earn the top spot according to the model; instead, Westbrook
+edged out Curry by about 0.7 points per 100 possessions. An intuitive explanation
+for this is that, when playing with only replacement players, it is important to be
+able to score and rebound for oneself without relying on mediocre teammates.  When
+inspecting their player profiles, one finds that Russell Westbrook's top attribute
+is assist rate, or the percentage of teammate field goals on which he assists while
+he's on the floor, and his lowest attributes are the percent of his two-point field
+goals that are assisted and the percent of his three-point field goals that are
+assisted. In other words, Westbrook is elite at both helping others score and at
+generating offense on his own; these are the two most important offensive skills
+when playing with replacement-level players, whereas Steph Curry, while also elite
+in both categories, relies slightly more on being assisted on his three-point shots.
+This can likely be attributed to the Warriors' superior lineup and their style of
+play, which emphasizes ball movement.
 
-\section{Lineup Ratings}
+Overall, the top of the list is littered with players from the fourth and sixth
+clusters. As mentioned previously, these are the clusters that emphasize
+facilitating on offense; in fact, these are the only clusters that had means with
+above-average assist rates. This suggests that, when playing with replacement-level
+players, having an elite point guard is critical, presumably because they are able
+to elevate the level of their teammates. Indeed, inspecting these players' player
+profiles shows that many of them have some of the lowest rates of being assisted on
+2-point field goals in the league; this typically means that they are able to score
+on their own and that they deliver a large portion of their team's assists. The
+only players in the top fifteen who are not in one of the two clusters are Kevin
+Durant, who is perhaps the best pure scorer in the NBA, Draymond Green, whose
+combination of offensive and defensive prowess is virtually unmatched, and Klay
+Thompson, who is one of the best pure shooters to ever play in the NBA.
+
+On the other hand, seven of the bottom eight players belong in the ``three-point
+specialist'' category. As mentioned above, these players tend to require assists to
+set up their shots. When playing with replacement-level players who tend to be bad
+at facilitating, the primary strength of a three-point specialist is significantly
+weakened. As a result, these players falter horribly when playing with only
+replacement-level players.
+
+\section{Lineup Ratings} \label{sec:lineup_ratings}
 
 Just as players are evaluated by comparing them to replacement level, lineups can be
 evaluated using the model by computing a lineup's expected point differential per
-possession against a lineup of five replacement players. Each lineup that played at
-least one possession in the 2015-16 season was evaluated, and the results are given
-in table~\ref{tab:lineup_ratings}. Note again that 2016 replacement players were
-used as the opposing team.
+possession against a lineup of five replacement players. The 100 lineups with the
+most possessions played in the 2015-16 season were evaluated, and the results are
+given in table~\ref{tab:lineup_ratings}. Note again that 2016 replacement players
+were used as the opposing team.
 
 \begin{table}
     \centering
     \noindent\makebox[\textwidth]{%
-        \begin{tabular}{cccccc}
-            TODO
+        \begin{tabular}{cccccccc}
+\toprule
+       Player 1 &    Player 2 &   Player 3 &     Player 4 &       Player 5 &    Cluster Types &  Total RAPM &  Rating \\
+\midrule
+      H. Barnes &    S. Curry &   D. Green &  A. Iguodala &    K. Thompson &  (3, 4, 7, 1, 1) &      17.580 &  42.345 \\
+       S. Curry &    F. Ezeli &   D. Green &  A. Iguodala &    K. Thompson &  (4, 8, 7, 1, 1) &      17.922 &  40.757 \\
+      H. Barnes &    S. Curry &   F. Ezeli &     D. Green &    K. Thompson &  (3, 4, 8, 7, 1) &      15.597 &  39.483 \\
+       A. Bogut &    S. Curry &   D. Green &  A. Iguodala &    K. Thompson &  (8, 4, 7, 1, 1) &      17.154 &  39.105 \\
+      H. Barnes &    A. Bogut &   S. Curry &     D. Green &    K. Thompson &  (3, 8, 4, 7, 1) &      14.829 &  36.398 \\
+      K. Irving &    L. James &    K. Love &     J. Smith &    T. Thompson &  (6, 4, 5, 1, 8) &      10.743 &  36.383 \\
+       S. Adams &   K. Durant &   S. Ibaka &   D. Waiters &   R. Westbrook &  (8, 3, 3, 6, 4) &      10.966 &  36.260 \\
+     B. Griffin &   D. Jordan &    L. Mbah &      C. Paul &      J. Redick &  (3, 8, 7, 4, 1) &      11.361 &  35.205 \\
+ M. Dellavedova &    L. James &    K. Love &     J. Smith &    T. Thompson &  (1, 4, 5, 1, 8) &      12.355 &  34.864 \\
+       A. Bogut &    S. Curry &   D. Green &      B. Rush &    K. Thompson &  (8, 4, 7, 1, 1) &      12.240 &  34.570 \\
+      K. Irving &    L. James &    K. Love &    T. Mozgov &       J. Smith &  (6, 4, 5, 2, 1) &       8.069 &  34.159 \\
+       S. Adams &   K. Durant &   S. Ibaka &  A. Roberson &   R. Westbrook &  (8, 3, 3, 7, 4) &      12.504 &  33.594 \\
+     B. Griffin &   D. Jordan &    C. Paul &    J. Redick &  L. Stephenson &  (3, 8, 4, 1, 3) &       8.417 &  33.593 \\
+    J. Crawford &  W. Johnson &  D. Jordan &      C. Paul &      J. Redick &  (6, 1, 8, 4, 1) &       8.761 &  33.587 \\
+      D. Jordan &     L. Mbah &    C. Paul &    P. Pierce &      J. Redick &  (8, 7, 4, 1, 1) &       9.481 &  33.092 \\
+\vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
+ G. Antetokounmpo &       O. Mayo &  K. Middleton &    J. Parker &   M. Plumlee &  (3, 1, 4, 3, 2) &      -0.931 &  17.845 \\
+       E. Bledsoe &   T. Chandler &     B. Knight &    M. Morris &    P. Tucker &  (4, 8, 6, 7, 7) &      -3.743 &  17.399 \\
+     W. Ellington &    J. Johnson &      B. Lopez &     D. Sloan &     T. Young &  (1, 6, 2, 6, 5) &      -3.988 &  16.835 \\
+       N. Bjelica &      G. Dieng &     Z. LaVine &    K. Martin &  S. Muhammad &  (7, 5, 6, 6, 3) &      -5.712 &  16.317 \\
+         G. Dieng &     T. Prince &      R. Rubio &     K. Towns &   A. Wiggins &  (5, 1, 4, 5, 6) &      -0.746 &  15.583 \\
+        A. Baynes &      S. Blake &    S. Johnson &    M. Morris &  A. Tolliver &  (2, 6, 3, 1, 1) &       0.790 &  15.542 \\
+       K. Garnett &     T. Prince &      R. Rubio &     K. Towns &   A. Wiggins &  (7, 1, 4, 5, 6) &       1.791 &  15.439 \\
+        K. Bryant &   J. Clarkson &    R. Hibbert &    J. Randle &  L. Williams &  (6, 6, 2, 5, 6) &     -11.552 &  14.621 \\
+       A. Bradley &    J. Jerebko &     K. Olynyk &     M. Smart &    E. Turner &  (1, 7, 7, 4, 4) &       1.369 &  14.376 \\
+        D. Booker &   T. Chandler &     B. Knight &       A. Len &    P. Tucker &  (6, 8, 6, 8, 7) &      -5.648 &  13.933 \\
+       C. Aldrich &   J. Crawford &    W. Johnson &  P. Prigioni &    A. Rivers &  (8, 6, 1, 4, 6) &      -3.865 &  13.794 \\
+    B. Bogdanovic &  W. Ellington &      B. Lopez &     D. Sloan &     T. Young &  (1, 1, 2, 6, 5) &      -6.243 &  13.633 \\
+        K. Bryant &   J. Clarkson &    R. Hibbert &     L. Nance &  L. Williams &  (6, 6, 2, 7, 6) &      -9.438 &  13.532 \\
+        D. Booker &   T. Chandler &        A. Len &     R. Price &    P. Tucker &  (6, 8, 8, 4, 7) &      -3.679 &  12.691 \\
+        K. Bryant &   J. Clarkson &    R. Hibbert &    J. Randle &   D. Russell &  (6, 6, 2, 5, 6) &     -10.898 &  12.536 \\
+\bottomrule
         \end{tabular}
     }
-    \caption{TODO}
+    \caption{Top fifteen and bottom fifteen lineups by expected point differential
+    against replacement players, out of the 100 lineups that played the most
+    possessions in 2015-16.}
     \label{tab:lineup_ratings}
 \end{table}
 
-TODO: interpretation
+These results are very reasonable and unsurprising. First, it is unsurprising that
+the Warriors' so-called ``Lineup of Death'' featuring Steph Curry, Draymond Green,
+Klay Thompson, Harrison Barnes, and Andre Iguodala was rated the best lineup versus
+replacement players; this lineup gained notoriety during the 2015-16 season as it
+became the Warriors' third most used lineup as it played 173 minutes for a
+staggering +44.4 net points per 100 possessions, a couple points higher than the
+player profile model's estimate against replacement-level players \cite{Ringer,
+BKRef}.
+After this lineup follow several Warriors lineups, with a smattering of Thunder,
+Clippers, and Cavaliers lineups rounding out the top 15. What is more interesting
+about these ratings, however, is the correlation between successful lineups and
+lineup composition in terms of cluster types. The majority of the highly rated
+lineups contain at least one three-point specialist from cluster 1, and in many
+cases two such specialists. The only lineups that do not contain a three-point
+specialist are the two Thunder lineups; however, Kevin Durant is an exception in
+cluster 3 in that he is an excellent three-point shooter, despite the cluster mean.
+This demonstrates the importance of having players who are threats from beyond the
+3-point arc.
+
+It is also interesting to note that the total RAPM of a lineup is not completely
+correlated with the lineup's points above replacement rating. For example, the
+second Thunder lineup has a far lower total RAPM than the Cavaliers lineup
+featuring Mozgov, but the Mozgov lineup is ranked higher than the Thunder lineup
+because, according to the model, it is able to take better advantage of
+complementary skill sets.
+
+On the other side of the table are several Lakers lineups featuring a 37-year-old
+Kobe Bryant; these lineups are rated very poorly and do not have any three-point
+specialists on them. Also noteworthy is the number of Timberwolves lineups in the
+bottom 15 lineups; in particular, the lineup of Rubio, Wiggins, Prince, Garnett, and
+Towns has a positive total RAPM, almost 10 more points per 100 possessions than the
+get moreworst Lakers lineup by RAPM, and yet they are projected to perform quite
+poorly against replacement players, relative to the other teams.
 
 \section{Matchups Between Starting Lineups}
 
 Another useful application of the model is that we can test how well we would expect
 each team's starting lineup to perform offensively and defensively against every
-other team's starting lineup. The expected points per possession for each possible
-matchup is given in figure~\ref{fig:off_def_mat}, where the rows indicate the team
-on offense and the columns indicate the team on defense; the values in the table
-represent the how many points per 100 possessions the offensive lineup would be
-expected to score against the defensive lineup.
+other team's starting lineup from the 2015-16 season. In order to determine a team's
+starting lineup, I selected whichever lineup started the most games for a team
+during the season. The expected points per possession for each possible matchup is
+given in figure~\ref{fig:off_def_mat}, where the rows indicate the team on offense
+and the columns indicate the team on defense; the values in the table represent the
+how many points per 100 possessions the offensive lineup would be expected to score
+against the defensive lineup. Note that values on the diagonal represent how well a
+given team's starting lineup would be expected to fare against itself.
 
-TODO: off-def matrix
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{figures/off_def_matrix}
+    \caption{How different teams' starting lineups would be expected to perform
+    against one another on a given side of the ball.}
+    \label{fig:off_def_mat}
+\end{figure}
 
+Further, for any two teams, we can compute the difference between the offensive
+advantages each team was expected to have against the other based on
+figure~\ref{fig:off_def_mat}. This gives an overall expected point differential per
+possession for each matchup; these overall expected point differentials per
+possession, prorated to 100 possessions, are given in figure~\ref{fig:pd_mat}. Note
+in this figure that 104.5 points per 100 possessions is roughly average in the NBA,
+so the colorbar is centered at 104.5, with green representing above average and red
+representing below average.
 
-TODO: diff matrix
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{figures/point_diff_matrix}
+    \caption{How different teams' starting lineups would be expected to perform
+    against one another, computing the point differential between the offensive and
+    defensive points.}
+    \label{fig:pd_mat}
+\end{figure}
 
+These figures by and large make sense; we can see that teams like Golden State,
+Oklahoma City, and Cleveland are very strong, whereas teams like Philadelphia, New
+York, and the Los Angeles Lakers are weaker. It is interesting to note that because
+of the way that different play styles interact, these values are not transitive; in
+other words, if team A has a positive expected point differential against team B and
+team B has a positive expected differential against team C, it does not necessarily
+mean that team A would play well against team C. For example, Boston has a very poor
+expected point differential against Oklahoma City, whereas Indiana is a better
+matchup with Oklahoma City. However, the model favors Boston's starting lineup
+against Indiana's. Intuitively, it makes sense that a situation like this could
+arise in the NBA due to different matchups and play styles within the lineups, so it
+is good that the model agrees that situations like this can arise.

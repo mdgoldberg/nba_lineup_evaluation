@@ -48,13 +48,14 @@ unique player profiles. The remaining players were binned into a ``replacement
 players'' category, for which only one player profile was created using statistics
 from all such players. The cutoff value of 360 was determined by using the fact that
 there are 30 teams in the NBA and each team is allowed twelve active players on
-their roster in any given game; this approach was borrowed from the Maymin et al
-analysis (CITE). This aspect of the model is both a computational convenience and a
-helpful addition to the model, for it allows comparison to a baseline replacement
-player. For example, we can evaluate a player by predicting the player's impact on
-the expected point differential between two teams of replacement players; similarly,
-lineups can be evaluated by predicting the point differential between the lineup and
-a lineup of replacement players. See chapter~\ref{ch:results} for such analyses.
+their roster in any given game; this approach was borrowed from the
+\citeauthor{Maymin} analysis. This aspect of the model is both a computational
+convenience and a helpful addition to the model, for it allows comparison to a
+baseline replacement player. For example, we can evaluate a player by predicting the
+player's impact on the expected point differential between two teams of replacement
+players; similarly, lineups can be evaluated by predicting the point differential
+between the lineup and a lineup of replacement players. See chapter~\ref{ch:results}
+for such analyses.
 
 One issue with the setup so far is that a player that would otherwise be in the 360
 players by number of plays may be treated as a replacement player if they are
@@ -286,7 +287,7 @@ linearly independent variables, called principal components, from the correlated
 player profiles. The first principal component is chosen such that it maximizes the
 amount of variance in the data that it explains; then, each subsequent principal
 component is chosen to maximize the amount of variance explained under the condition
-that it is orthogonal to each of the previous principal components.
+that it is orthogonal to each of the previous principal components \cite{PCA}.
 
 Second, Isomap is a nonlinear dimensionality reduction technique that seeks to
 respect geodesic distances between points. The algorithm connects points that are
@@ -294,7 +295,8 @@ near one another with edges and then computes the shortest path between any two
 points over these edges using a shortest-path algorithm such as Dijkstra's algorithm
 or the Floyd-Warshall algorithm. These geodesic distances are then used to form a
 distance matrix; the $n$ eigenvectors of this distance matrix with the greatest
-eigenvalues are then used as the coordinates for the new $n$-dimensional space.
+eigenvalues are then used as the coordinates for the new $n$-dimensional space
+\cite{Isomap}.
 
 Finally, LLE seeks to reduce dimension while preserving local distances within
 neighborhoods of points. The LLE algorithm is similar to Isomap; like Isomap, it
@@ -302,7 +304,7 @@ constructs a graph of nearest neighbors by connecting neighbors with edges. Then
 weight matrix is constructed by solving a linear system for the local neighborhood
 defined for each point as the neighbors to which it is connected. Finally, like
 Isomap, the top $n$ eigenvectors of this weight matrix are the coordinates for the
-new $n$-dimensional space.
+new $n$-dimensional space \cite{LLE}.
 
 All three of these techniques have different strengths, and it is almost impossible
 to identify when one technique will work and the other will not without very good
@@ -342,31 +344,37 @@ on the players, both the offensive and defensive lineups were ordered by total R
 
 Several possible choices for the regression model $f$ were considered, including
 both linear and nonlinear regression techniques. Ultimately, linear regression,
-random forests, and gradient boosting were all tested as regressors during
-cross-validation. The final model was selected based on performance in
-cross-validation, as explained in section~\ref{sec:mod_sel}.
+random forests \cite{RF}, and gradient boosting \cite{GB} were all tested as
+regressors during cross-validation. Note that, although linear regression is, of
+course, a linear model, it does account for interactions between play styles to an
+extent due to the way the model is formulated. Because players are ordered by total
+RAPM, substituting one player for another is not as simple as the RAPM approach of
+adding the difference between the players' ratings; this is because a substitution
+could result in a different order after being sorted by RAPM than before, which
+would result in different predictors being matched with different coefficients. The
+final model was selected based on performance in cross-validation, as explained in
+section~\ref{sec:mod_sel}.
 
 \section{Model Selection}
 \label{sec:mod_sel}
 
-The second half of each season contains roughly 200,000 possessions (TODO: find
-exact mean). Because of the sheer quantity of data, cross-validation over the entire
-dataset would be very time- and memory-consuming. Because we wish to test each
-possible combination of the dimensionality reduction techniques mentioned in
-section~\ref{sec:dim_red} and the regression techniques mentioned in
-section~\ref{sec:regress}, in addition to several different hyperparameter settings
-for each of these techniques that can drastically change performance, it would be
-infeasible to do cross-validation on the entire ten-year dataset. In order to select
-the best model more efficiently, cross-validation was done on three seasons of data,
-starting with the 2011-12 NBA season and ending with the 2013-14 NBA season.
-Three-fold cross-validation was performed for each combination of dimensionality
-reduction technique and regression technique, as well as for various different
-hyperparameter settings for each; in particular, cross-validation was done so that
-in each fold, data from two of the three seasons were used to train the regression
-model and the third year was held out as a validation set on which to evaluate the
-model. Models were evaluated using root-mean-square error (RMSE), and the model was
-selected by choosing the model with the lowest cross-validation RMSE score. Once
-this model was selected, it was trained on data starting with the 2006-07 season and
-ending with the 2013-14 season; the last two seasons in the dataset were held out in
-order to determine the test RMSE on unseen data. The results of this process are
-summarized in chapter~\ref{ch:results}.
+The second half of each season contains roughly 114,000 possessions. Because of the
+sheer quantity of data, cross-validation over the entire dataset would be very time-
+and memory-consuming. Because we wish to test each possible combination of the
+dimensionality reduction techniques mentioned in section~\ref{sec:dim_red} and the
+regression techniques mentioned in section~\ref{sec:regress}, in addition to several
+different hyperparameter settings for each of these techniques that can drastically
+change performance, it would be infeasible to do cross-validation on the entire
+ten-year dataset. In order to select the best model more efficiently,
+cross-validation was done on three seasons of data, starting with the 2011-12 NBA
+season and ending with the 2013-14 NBA season.  Three-fold cross-validation was
+performed for each combination of dimensionality reduction technique and regression
+technique, as well as for various different hyperparameter settings for each; in
+particular, cross-validation was done so that in each fold, data from two of the
+three seasons were used to train the regression model and the third year was held
+out as a validation set on which to evaluate the model. Models were evaluated using
+root-mean-square error (RMSE), and the model was selected by choosing the model with
+the lowest cross-validation RMSE score. Once this model was selected, it was trained
+on data starting with the 2006-07 season and ending with the 2013-14 season; the
+last two seasons in the dataset were held out in order to determine the test RMSE on
+unseen data. The results of this process are summarized in chapter~\ref{ch:results}.
