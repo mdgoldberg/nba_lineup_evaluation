@@ -74,7 +74,7 @@ def produce_results_for_year(year):
     season = nba.Season(year)
     clusters = pd.read_csv(os.path.join(
         PROJ_DIR, 'data', 'results', 'clusters.csv'
-    ), index_col=[0,1])['0'].xs(year, level=1)
+    ), index_col=[0,1], header=None)[2].xs(year, level=1)
 
     logger.info('evaluating players')
     players_df = season.player_stats_totals().query(
@@ -144,16 +144,6 @@ def produce_results_for_year(year):
     plot_matrix(point_diff_matrix, 'point_diff_matrix.png')
     write_output(point_diff_matrix, 'point_diff_matrix.csv')
 
-    # TODO: make this faster?
-    logger.info('evaluating starting decisions')
-    team_ids = season.get_team_ids()
-    sched_eval_df = pd.concat([
-        predict_model.evaluate_team_schedule(team_id, year)
-        for team_id in team_ids
-    ])
-    write_output(sched_eval_df, 'sched_evals.csv')
-
-    # TODO: make this faster?
     logger.info('evaluating all trades')
     trade_evals = predict_model.evaluate_all_trades(year)
     write_output(trade_evals, 'trade_evals.csv')

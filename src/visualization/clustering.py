@@ -51,7 +51,7 @@ if __name__ == '__main__':
     km = cluster.KMeans(n_clusters=8, n_init=20, max_iter=500)
     clusters = km.fit_predict(profs_kmeans)
     cluster_df = profiles_scaled.assign(cluster=clusters)
-    visualize.write_output(cluster_df['cluster'], 'clusters.csv')
+    # visualize.write_output(cluster_df['cluster'], 'clusters.csv')
 
     means = pd.DataFrame(
         profiles_scaled.groupby(clusters).mean(),
@@ -62,4 +62,4 @@ if __name__ == '__main__':
     means.columns.name = 'Feature'
     means = means.T.applymap(lambda x: round(x, 2))
 
-    visualize.write_table(means, 'cluster_means.txt', column_format='c'*8)
+    # visualize.write_table(means, 'cluster_means.txt', column_format='c'*8)

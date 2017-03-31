@@ -181,7 +181,7 @@ def process_trade(team1, team2, starters1, starters2, trade):
 @decorators.memoize
 def year_off_def_matrix(year, trade=None):
     season = nba.Season(year)
-    team_ids = season.get_team_ids()
+    team_ids = sorted(season.get_team_ids())
     n = len(team_ids)
     team_idxs = dict(zip(team_ids, range(n)))
     grid = np.zeros((n, n))
@@ -207,7 +207,7 @@ def year_off_def_matrix(year, trade=None):
 def year_diff_matrix(year, trade=None):
     grid_df = year_off_def_matrix(year, trade=trade)
     season = nba.Season(year)
-    team_ids = season.get_team_ids()
+    team_ids = sorted(season.get_team_ids())
     n = len(team_ids)
     team_idxs = dict(zip(team_ids, range(n)))
 
@@ -240,7 +240,7 @@ def evaluate_trade(team1, team2, player1, player2, year):
 
     # compare matrices
     season = nba.Season(year)
-    team_ids = season.get_team_ids()
+    team_ids = sorted(season.get_team_ids())
     n = len(team_ids)
 
     ppp_advs = []
@@ -263,7 +263,7 @@ def evaluate_trade(team1, team2, player1, player2, year):
 
 
 @decorators.memoize
-def evaluate_trades_two_teams(teams):
+def evaluate_trades_two_teams(teams, year=None):
     print 'evaluating trades between {} and {}'.format(*teams)
     starters = [get_starters(team, year) for team in teams]
     trade_results = []
@@ -283,11 +283,11 @@ def evaluate_trades_two_teams(teams):
 
 def evaluate_all_trades(year):
     season = nba.Season(year)
-    team_ids = season.get_team_ids()
+    team_ids = sorted(season.get_team_ids())
     trade_results = []
     team_combs = db.from_sequence(itertools.combinations(team_ids, 2))
     with diagnostics.ProgressBar():
         dfs = team_combs.map(
-            evaluate_trades_two_teams
+            evaluate_trades_two_teams, year=year
         ).compute(get=dask.multiprocessing.get)
     return pd.concat(dfs)
