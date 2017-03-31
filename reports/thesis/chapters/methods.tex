@@ -10,16 +10,16 @@ quantitative representation of each player's abilities and play style. Then, the
 ``player profiles'' of the players on the court can be used to predict the outcome
 of each possession, measured in terms of points scored. Therefore, the problem can
 be stated as a regression with each possession as a unit of observation, points
-scored as the response variable, and features describing the play styles of the
-players on the court during the possession as predictors.
+scored as the response variable, and features describing the talents and play
+styles of the players on the court during the possession as predictors.
 
-A more in-depth discussion of the setup of the model is described in section
-\ref{sec:setup}. Then, the process of building player profiles to represent each
-player-season is described in section \ref{sec:profiles}. Next, the process of
-reducing the dimensionality of these profiles is described in section
-\ref{sec:dim_red} and the regression techniques for predicting points in a
-possession are described in section \ref{sec:regress}. Finally, the manner in which
-a model was selected and trained is described in section \ref{sec:mod_sel}.
+A more in-depth discussion of the setup of the model is described in
+section~\ref{sec:setup}. Then, the process of building player profiles to represent
+each player-season is described in section~\ref{sec:profiles}. Next, the process of
+reducing the dimensionality of these profiles is described in
+section~\ref{sec:dim_red} and the regression techniques for predicting points in a
+possession are described in section~\ref{sec:regress}. Finally, the manner in which
+a model was selected and trained is described in section~\ref{sec:mod_sel}.
 
 \section{Model Setup}
 \label{sec:setup}
@@ -27,30 +27,34 @@ a model was selected and trained is described in section \ref{sec:mod_sel}.
 The goal of building player profiles for each player is to quantitatively represent
 a player's play style in a given season. Play styles can change from season to
 season due to factors like age and changes within a team, such as coaching changes
-or roster moves through trades or free agency. Therefore, in order to quantify play
-styles for prediction within season $t$, player profiles were constructed from
-play-by-play-based statistics from the first half of season $t$.  Then, these
-profiles were used to predict point outcomes for each possession in the second half
-of season $t$. There are a few advantages to this setup; first, it uses data from
-the same season as the second-half possessions that are included in the training
-data, ensuring that the player's current play style is represented.  Moreover,
-rookies selected in the most recent draft can often become contributors to a team,
-so it is advantageous that this model that can include such first-year players.
+or roster moves through trades or free agency. Therefore, in order to quantify a
+player's play style for season $t$, using statistics from within season $t$ is
+essential. However, it is nonsensical to use play-by-play data from season $t$ to
+construct player profiles if we are to use these player profiles to predict point
+outcomes in season $t$ because the puropose of the model from the perspective of a
+coach is to accurately predict point differential prior to observing these outcomes.
+Therefore, one possible solution is to use play-by-play data from the first half of
+season $t$ to build player profiles and then to use these player profiles to predict
+point outcomes for each possession in the second half of season $t$. There are a few
+advantages to this setup; first, it ensures that the player's current play style is
+represented by using data from within the same season. Second, rookies can often
+become important contributors to a team, so it is advantageous that this model that
+can include such first-year players.
 
 A second aspect of the model setup is that not every player in the league is given a
-representation; instead, the number of plays (defined in chapter \ref{ch:data}) for
+representation; instead, the number of plays (defined in chapter~\ref{ch:data}) for
 which each player was on the court was computed, and the top 360 players were given
 unique player profiles. The remaining players were binned into a ``replacement
 players'' category, for which only one player profile was created using statistics
-from all such players. The cutoff value of 360 was determined using the fact that
+from all such players. The cutoff value of 360 was determined by using the fact that
 there are 30 teams in the NBA and each team is allowed twelve active players on
 their roster in any given game; this approach was borrowed from the Maymin et al
-analysis. This aspect of the model is both a computational convenience and a helpful
-addition to the model, for it allows comparison to a baseline replacement player.
-For example, we can evaluate a player by predicting the player's impact on the
-expected point differential between two teams of replacement players; similarly,
+analysis (CITE). This aspect of the model is both a computational convenience and a
+helpful addition to the model, for it allows comparison to a baseline replacement
+player. For example, we can evaluate a player by predicting the player's impact on
+the expected point differential between two teams of replacement players; similarly,
 lineups can be evaluated by predicting the point differential between the lineup and
-a lineup of replacement players.
+a lineup of replacement players. See chapter~\ref{ch:results} for such analyses.
 
 One issue with the setup so far is that a player that would otherwise be in the 360
 players by number of plays may be treated as a replacement player if they are
@@ -62,21 +66,24 @@ factor of 6. Because only half of season $t$ is used, this weighting scheme resu
 in roughly a 75\%/25\% split between statistics recorded in the first half of season
 $t$ and statistics recorded in season $t-1$. As a result of this weighting scheme,
 players who played very significant time in season $t-1$ would still be given a
-unique player profile for possessions in the second half of season $t$. To generate
-rate statistics, this weighting scheme was used to find a weighted value for both
-the numerator and the denominator of the rate statistic, rather than weighting the
-rates from each season; this was done in order to avoid giving too much weight to
-either component of the blend due to a disparity in sample sizes.
+unique player profile for possessions in the second half of season $t$, even if they
+suffer injury for all of the first half of season $t$. To generate rate statistics,
+this weighting scheme was used to find a weighted value for both the numerator and
+the denominator of the rate statistic, rather than weighting the rates from each
+season; this was done in order to avoid giving too much weight to either component
+of the blend due to a disparity in sample sizes. For example, a weighted version of
+free throw percentage for a player in season $t$ was computed as $(\text{FTM}_{t-1}
++ 6\text{FTM}_t)/(\text{FTA}_{t-1} + 6\text{FTA}_t)$.
 
 \section{Building Player Profiles Representative of Play Style}
 \label{sec:profiles}
 
 In order to quantify a player's play style, I computed many rate statistics from the
-play-by-play data described in chapter \ref{ch:data}. It is important to note that
+play-by-play data described in chapter~\ref{ch:data}. It is important to note that
 all statistics are rate statistics, as the goal is to capture the manner in which a
 player plays, rather than the amount he plays. In order to take playing time out of
 the equation, statistics were computed per play, where a play is essentially any
-opportunity a team has to score (see chapter \ref{ch:data}). While sample size can
+opportunity a team has to score (see chapter~\ref{ch:data}). While sample size can
 normally be an issue with rate statistics, this concern is alleviated in this case
 by the fact that all players not in the set of the 360 players with the most plays
 were binned together when computing statistics such as plays, field goals, and
@@ -90,9 +97,9 @@ statistics that describe a player's play. In addition to these traditionally-def
 rate statistics in which a raw total of a certain event was divided by another, such
 as field goal attempts per play, I compute offensive and defensive regularized
 adjusted plus/minus ratings (ORAPM and DRAPM) for each player and for the
-replacement player category using the model setup described in equation \ref{eq:apm}
+replacement player category using the model setup described in equation~\ref{eq:apm}
 and estimating coefficients using a weighted version of the ridge regression
-described in \ref{eq:ridge_loss}. Specifically, possessions from the first half of
+described in~\ref{eq:ridge_loss}. Specifically, possessions from the first half of
 season $t$ are given six times the weight of possessions from season $t-1$; these
 weights were applied by adding weights to the loss function for each training
 sample, so coefficients were found by minimizing
@@ -106,12 +113,13 @@ were meant to indicate general overall skill on each end of the floor, and to
 capture the contributions a player can make that aren't captured by play-by-play
 data.
 
-TODO: clarify below
-
 Finally, after the player profiles were computed, they were standardized within each
-year by subtracting the mean of a given statistic within a given year and dividing
-by the standard deviation. This has two justifications: first, it puts the data on
-the same scale; second, it controls for the changing landscape of the NBA by
+year by subtracting the mean of a given profile feature within a given year and
+dividing by the standard deviation. To clarify, a player profile for season $t$
+includes data from season $t-1$ and the first half of season $t$; a weighted version
+of each rate statistic is computed first, and standardization only comes after all
+raw player profiles are computed. This has two justifications: first, it puts the
+data on the same scale; second, it controls for the changing landscape of the NBA by
 comparing players to other players within a given year, rather than comparing
 player-seasons that took place in very different contexts.
 
@@ -180,7 +188,7 @@ player scores; for example, field goal attempts per play is meant to measure the
 degree to which a player shoulders the scoring burden for his team, and free throw
 percentage is often used to measure a player's pure shooting ability in addition to
 his ability to convert shooting fouls into points. For a description of each of
-these statistics and what they intend to measure, see table \ref{tab:features}.
+these statistics and what they intend to measure, see table~\ref{tab:features}.
 
 The statistics describing how often and how efficiently a player shoots from various
 distances require more explanation. The regions chosen, as well as justifications
@@ -243,7 +251,7 @@ if the player was on the court for the shot and thus had the opportunity to bloc
 it; also, block rate is traditionally computed using only 2-point field goal
 attempts because three-point shots are very rarely blocked. Likewise, opponent
 turnovers were only considered for plays where the player was on the court. These
-statistics are summarized in table \ref{tab:features}.
+statistics are summarized in table~\ref{tab:features}.
 
 \subsection{Rebounding Features}
 
@@ -257,7 +265,7 @@ is the total number of defensive rebounds a player grabs over the number of
 defensive rebounds his team grabs while he's on the floor plus the number of
 offensive rebounds the opposing team grabs while he's on the floor; offensive
 rebounding rate is defined similarly. For completeness, these are also described in
-table \ref{tab:features}.
+table~\ref{tab:features}.
 
 \section{Finding Latent Features via Dimensionality Reduction}
 \label{sec:dim_red}
@@ -269,7 +277,7 @@ succinct, in that dimensionality would be reduced, and to reduce multicollineari
 as many of the statistics above are correlated with one another. Several
 dimensionality reduction techniques, both linear and nonlinear, were tested in order
 to minimize cross-validation error on held-out data in the subsequent regression
-(see section \ref{sec:regress}). Specifically, principal component analysis (PCA),
+(see section~\ref{sec:regress}). Specifically, principal component analysis (PCA),
 Isomap, and locally linear embedding (LLE) were all used to reduce the
 dimensionality of the player profiles.
 
@@ -296,55 +304,69 @@ defined for each point as the neighbors to which it is connected. Finally, like
 Isomap, the top $n$ eigenvectors of this weight matrix are the coordinates for the
 new $n$-dimensional space.
 
-TODO: explain that best one is chosen from the data
+All three of these techniques have different strengths, and it is almost impossible
+to identify when one technique will work and the other will not without very good
+knowledge of the structure and geometry of the data. Without such information about
+the player profiles, the best way to select a dimensionality reduction technique is
+to test each one and choose the model that gives the best performance on
+out-of-sample data; this is done via cross-validation and is described in
+section~\ref{sec:mod_sel}.
 
 \section{Predicting Point Differential Based on Lineup Composition}
 \label{sec:regress}
 
-TODO: specify model formally, make sure it's updated; make sure to mention linear
-regression would still interpret interactions to an extent
-
 Once player profiles were passed through a dimensionality reduction algorithm, they
 were used to construct the design matrix for the regression predicting point
-outcomes on each possession. In this design matrix, each row is a possession from
-the second half of season $t$; the columns represent the latent features, produced
-by dimensionality reduction of player profiles based on season $t-1$ and the first
-half of season $t$, of each player on offense and defense. In particular, if
-dimensionality reduction reduces the player profiles to $d$ dimensions, then the
-design matrix has $10d + 1$ columns: $d$ columns for the latent features of each
-player on offense, $d$ columns for the latent features for each player on defense,
-and one column to indicate whether the home team is on offense in order to account
-for home court advantage. Moreover, in order to standardize the order of the players
-on offense and defense, the players were sorted by total RAPM so that, for example,
-the first column can be interpreted as the first latent feature for the best player
-(as measured by RAPM) on the offensive team. The response variable is the amount of
-points the offense scored on that possession. In order to carry out the regression,
-both linear and nonlinear regression techniques were considered; specifically,
-linear regression, random forests, and gradient boosting were all used as
-regressors. The final model was selected based on performance in cross-validation,
-as explained in section \ref{sec:mod_sel}.
+outcomes on each possession. Specifically, the player profiles were incorporated
+into the regression via the following model:
+
+\begin{equation} \label{eq:model_spec}
+    y_i = f\left( a_{o_{1,i}}, \dots, a_{o_{5,i}}, b_{d_{1,i}}, \dots, b_{d_{5,i}},
+    \bm{x_{o_{1,i}}}, \dots, \bm{x_{o_{5,i}}}, \bm{x_{d_{1,i}}}, \dots,
+    \bm{x_{d_{5,i}}}, h_i \right) + \epsilon_i
+\end{equation}
+
+where $y_i$ is points scored by the offense on possession $i$, $o_{j,i}$ is the
+$j$th best offensive player on the floor for possession $i$ when ranked by total
+RAPM, $d_{j,i}$ is the $j$th best defensive player on the floor for possession $i$
+when ranked by total RAPM, $a_k$ is the ORAPM rating for player $k$, $b_k$ is the
+DRAPM rating for player $k$, and $\bm{x_k}$ is the latent player profile for player
+$k$. Finally, $h_i$ is an indicator for whether the home team is on offense on
+possession $i$ and $\epsilon_i$ is a zero-mean error term. The function $f$
+represents some regression function that takes its inputs as predictors and models
+the response variable $y_i$. In other words, the predictors are the ORAPM ratings of
+the five offensive players, the DRAPM ratings of the five players on defense, and
+the dimensionality-reduced player profiles for each of the ten players on the court,
+in addition to an indicator for home court advantage. In order to impose an ordering
+on the players, both the offensive and defensive lineups were ordered by total RAPM.
+
+Several possible choices for the regression model $f$ were considered, including
+both linear and nonlinear regression techniques. Ultimately, linear regression,
+random forests, and gradient boosting were all tested as regressors during
+cross-validation. The final model was selected based on performance in
+cross-validation, as explained in section~\ref{sec:mod_sel}.
 
 \section{Model Selection}
 \label{sec:mod_sel}
 
 The second half of each season contains roughly 200,000 possessions (TODO: find
 exact mean). Because of the sheer quantity of data, cross-validation over the entire
-dataset would have been very time- and memory-consuming. Because we wish to test
-each possible combination of the dimensionality reduction techniques mentioned in
-section \ref{sec:dim_red} and the regression techniques mentioned in section
-\ref{sec:regress}, in addition to several different hyperparameter settings for each
-of these techniques that can drastically change performance, it would be infeasible
-to do cross-validation on the entire ten-year dataset. In order to select the best
-model more efficiently, cross-validation was done on three seasons of data, starting
-with the 2011-12 NBA season and ending with the 2013-14 NBA season.  Four-fold
-cross-validation was performed for each combination of dimensionality reduction
-technique and regression technique, as well as for various different hyperparameter
-settings for each; in particular, cross-validation was done so that in each fold,
-data from three of the four years was used to train the regression model and the
-fourth year was held out as a validation set on which to evaluate the model. Models
-were evaluated using root-mean-square error (RMSE), and the model was selected by
-choosing the model with the lowest cross-validation RMSE score. Once this model was
-selected, it was trained on data starting with the 2006-07 season and ending with
-the 2013-14 season; the last two seasons in the dataset were held out in order to
-determine the test RMSE on unseen data. The results of this process are summarized
-in chapter \ref{ch:results}.
+dataset would be very time- and memory-consuming. Because we wish to test each
+possible combination of the dimensionality reduction techniques mentioned in
+section~\ref{sec:dim_red} and the regression techniques mentioned in
+section~\ref{sec:regress}, in addition to several different hyperparameter settings
+for each of these techniques that can drastically change performance, it would be
+infeasible to do cross-validation on the entire ten-year dataset. In order to select
+the best model more efficiently, cross-validation was done on three seasons of data,
+starting with the 2011-12 NBA season and ending with the 2013-14 NBA season.
+Three-fold cross-validation was performed for each combination of dimensionality
+reduction technique and regression technique, as well as for various different
+hyperparameter settings for each; in particular, cross-validation was done so that
+in each fold, data from two of the three seasons were used to train the regression
+model and the third year was held out as a validation set on which to evaluate the
+model. Models were evaluated using root-mean-square error (RMSE), and the model was
+selected by choosing the model with the lowest cross-validation RMSE score. Once
+this model was selected, it was trained on data starting with the 2006-07 season and
+ending with the 2013-14 season; the last two seasons in the dataset were held out in
+order to determine the test RMSE on unseen data. The results of this process are
+summarized in chapter~\ref{ch:results}.

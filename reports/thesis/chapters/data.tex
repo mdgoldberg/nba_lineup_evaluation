@@ -30,12 +30,21 @@ GitHub (CITE).
 
 More specifically, the data used in this thesis was scraped from the play-by-play
 section that Basketball Reference provides for virtually game since the beginning of
-the 2000-2001 NBA season (TODO: image). This page gives detailed text descriptions
+the 2000-2001 NBA season. For an example of what this looks like, see
+figure~\ref{fig:bkref_pbp}. This page gives detailed text descriptions
 of each event throughout the game, but does not contain structured data to identify,
 for example, whether an event is a rebound or who the shooter is on a field goal
 attempt. Therefore, regular expressions were constructed for each type of event in
 the dataset in order to create structured data from these descriptions; altogether,
 there are about twenty different types of events.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{figures/bkref_pbp}
+    \caption{An example of the Basketball Reference play-by-play source for a
+    Warriors-Celtics game in April 2016.}
+    \label{fig:bkref_pbp}
+\end{figure}
 
 Moreover, several issues exist in the raw data that required cleaning. Perhaps the
 most difficult problem with the raw data is that some events were ordered

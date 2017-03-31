@@ -270,26 +270,65 @@ RAPM model.
 Using the player profile model, a given player $p$ can be evaluated by computing the
 expected point differential per possession that a team of $p$ and four replacement
 players would achieve against a team of five replacement players; this assigns a
-``points above replacement'' rating based on how much a player contributes to an
-otherwise replacement-level team. Expected point differential per possession is
+``points above replacement'' (PAR) rating based on how much a player contributes to
+an otherwise replacement-level team. Expected point differential per possession is
 computed by using the model to predict the points per possession when the player's
 lineup is on defense and subtracting this value from the predicted points per
 possession when the player's lineup is on offense; for simplicity's sake, the
 offense is always assumed to be the home team, so that the home court advantage
 cancels out during subtraction. Using the model trained on data from the 2006-07 NBA
-season through the 2013-14 NBA season, ratings were calculated for all (TODO:
-number?) players who played at least 820 minutes in the 2015-16 season, which
-corresponds to an average of 10 minutes per game over the 82-game season; the best
-and worst of these ratings are shown in table~\ref{tab:player_ratings}.
+season through the 2013-14 NBA season, ratings were calculated for all 297 players
+who played at least 820 minutes in the 2015-16 season and were not considered
+replacement-level players for the 2016 season in the player profile analysis; the
+minute cutoff was chosen because it corresponds to an average of 10 minutes per game
+over the 82-game season; moreover, because we are evaluating players for the
+2016 season, the nine replacement players will be given the player profile for the
+2016 replacement-level player. The best and worst of these ratings are shown in
+table~\ref{tab:player_ratings}.
 
 \begin{table}
     \centering
     \noindent\makebox[\textwidth]{%
-    \begin{tabular}{ccc}
-        TODO
-    \end{tabular}
+        \begin{tabular}{cccccc}
+            \toprule
+            Player & Cluster &  PAR Rating &  ORAPM &  DRAPM &  RAPM \\
+            \midrule
+ Russell Westbrook &       4 &   6.356 &  3.231 &  0.182 & 3.413 \\
+     Stephen Curry &       4 &   5.633 &  4.124 &  1.390 & 5.515 \\
+      LeBron James &       4 &   5.041 &  3.371 &  1.429 & 4.800 \\
+        Chris Paul &       4 &   4.652 &  3.227 &  0.228 & 3.455 \\
+      James Harden &       4 &   3.799 &  1.814 & -1.090 & 0.724 \\
+      Kevin Durant &       3 &   3.645 &  3.152 &  0.924 & 4.076 \\
+      Kyrie Irving &       6 &   2.841 &  2.565 & -0.848 & 1.717 \\
+     Isaiah Thomas &       6 &   2.746 &  1.952 & -0.965 & 0.986 \\
+    Damian Lillard &       6 &   2.225 &  1.808 & -1.463 & 0.345 \\
+        Kyle Lowry &       4 &   2.071 &  1.778 &  0.471 & 2.248 \\
+    Draymond Green &       7 &   2.070 &  3.045 &  2.056 & 5.101 \\
+    Reggie Jackson &       6 &   1.957 &  1.310 &  0.194 & 1.504 \\
+         John Wall &       4 &   1.893 &  0.848 &  0.229 & 1.077 \\
+     Klay Thompson &       1 &   1.793 &  3.367 &  0.198 & 3.565 \\
+     Manu Ginobili &       4 &   1.730 &  1.998 &  1.278 & 3.276 \\
+            \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
+      Jerami Grant &       7 &  -5.327 & -1.389 &  0.066 & -1.323 \\
+        Josh Smith &       7 &  -5.349 & -2.324 &  0.350 & -1.975 \\
+   Bismack Biyombo &       8 &  -5.601 & -1.636 &  0.448 & -1.188 \\
+       Noah Vonleh &       2 &  -5.622 & -1.112 & -0.765 & -1.876 \\
+    Doug McDermott &       1 &  -5.740 & -0.755 & -0.437 & -1.192 \\
+  Dante Cunningham &       3 &  -5.762 &  0.030 & -1.515 & -1.485 \\
+     Dwight Powell &       7 &  -5.865 & -1.998 &  1.274 & -0.724 \\
+      Kyle Singler &       1 &  -6.061 & -0.755 & -0.774 & -1.529 \\
+      Brandon Rush &       1 &  -6.289 & -0.565 & -1.485 & -2.051 \\
+     Rashad Vaughn &       1 &  -6.295 & -0.837 & -0.609 & -1.446 \\
+      Nik Stauskas &       1 &  -6.356 & -1.703 & -1.825 & -3.528 \\
+      Nerlens Noel &       8 &  -6.643 & -3.678 &  0.549 & -3.129 \\
+        Alonzo Gee &       1 &  -7.151 & -1.671 & -0.455 & -2.126 \\
+ Richard Jefferson &       1 &  -7.319 & -1.859 & -0.819 & -2.678 \\
+   Wayne Ellington &       1 &  -7.449 & -2.404 &  0.002 & -2.402 \\
+            \bottomrule
+        \end{tabular}
     }
-    \caption{TODO}
+    \caption{Top fifteen and bottom fifteen players measured by expected point
+    differential playing with nine replacement-level players.}
     \label{tab:player_ratings}
 \end{table}
 
@@ -312,7 +351,19 @@ Just as players are evaluated by comparing them to replacement level, lineups ca
 evaluated using the model by computing a lineup's expected point differential per
 possession against a lineup of five replacement players. Each lineup that played at
 least one possession in the 2015-16 season was evaluated, and the results are given
-in table~\ref{TODO}.
+in table~\ref{tab:lineup_ratings}. Note again that 2016 replacement players were
+used as the opposing team.
+
+\begin{table}
+    \centering
+    \noindent\makebox[\textwidth]{%
+        \begin{tabular}{cccccc}
+            TODO
+        \end{tabular}
+    }
+    \caption{TODO}
+    \label{tab:lineup_ratings}
+\end{table}
 
 TODO: interpretation
 
@@ -321,18 +372,13 @@ TODO: interpretation
 Another useful application of the model is that we can test how well we would expect
 each team's starting lineup to perform offensively and defensively against every
 other team's starting lineup. The expected points per possession for each possible
-matchup is given in figure~\ref{TODO}, where the rows indicate the team on offense
-and the columns indicate the team on defense; the values in the table represent the
-how many points per 100 possessions the offensive lineup would be expected to score
-against the defensive lineup \citep{Knuth1968}.
+matchup is given in figure~\ref{fig:off_def_mat}, where the rows indicate the team
+on offense and the columns indicate the team on defense; the values in the table
+represent the how many points per 100 possessions the offensive lineup would be
+expected to score against the defensive lineup.
 
 TODO: off-def matrix
 
 
 TODO: diff matrix
 
-
-TODO sections for:
-starting lineup evaluation
-trade evaluations
-all star starters?
