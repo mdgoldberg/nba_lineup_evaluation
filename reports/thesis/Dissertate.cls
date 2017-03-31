@@ -84,7 +84,7 @@
 \AtBeginEnvironment{tabular}{\addfontfeature{RawFeature=+tnum}}
 \widowpenalty=300
 \clubpenalty=300
-\setromanfont[Numbers=OldStyle, Ligatures={Common, TeX}, Scale=1.0]{EB Garamond}
+\setromanfont[Numbers=Lining, Ligatures={Common, TeX}, Scale=1.0]{EB Garamond}
 \newfontfamily{\smallcaps}[RawFeature={+c2sc,+scmp}]{EB Garamond}
 \setsansfont[Scale=MatchLowercase, BoldFont={Lato Bold}]{Lato Regular}
 \setmonofont[Scale=MatchLowercase]{Source Code Pro}
@@ -120,7 +120,7 @@
 
 % References.
 \renewcommand\bibname{References}
-\RequirePackage[comma, square, numbers, sort]{natbib}
+\RequirePackage[super,comma,numbers,sort]{natbib}
 \renewcommand{\bibnumfmt}[1]{[#1]}
 \RequirePackage[palatino]{quotchap}
 \renewcommand*{\chapterheadstartvskip}{\vspace*{-0.5\baselineskip}}
@@ -186,8 +186,8 @@
 
 % School color found from university's graphic identity site:
 % http://isites.harvard.edu/icb/icb.do?keyword=k75408&pageid=icb.page392732
-\definecolor{SchoolColor}{rgb}{0.6471, 0.1098, 0.1882} % Crimson
-\definecolor{chaptergrey}{rgb}{0.6471, 0.1098, 0.1882} % for chapter numbers
+\definecolor{SchoolColor}{rgb}{0,0,0} % Crimson
+\definecolor{chaptergrey}{rgb}{0,0,0} % for chapter numbers
 
 \hypersetup{
     colorlinks,
@@ -202,11 +202,8 @@
 \renewcommand{\frontmatter}{
 	\input{frontmatter/personalize}
 	\maketitle
-	\copyrightpage
 	\abstractpage
     \contentspage
-	% \listoffigures % optional
-	\dedicationpage
 	\acknowledgments
 }
 
@@ -220,7 +217,7 @@
 	\Huge \textcolor{SchoolColor}{\thetitle} \normalsize \\
 	\vspace{100pt}
 	\textsc{a dissertation presented \\ by\\
-	\theauthor\\ to\\ The Department of \@department\\
+	\theauthor\\ to\\ The Departments of \@department\\
 	\vspace{12pt}
 	in partial fulfillment of the requirements\\
 	for the degree of\\ \@degree\\
@@ -301,6 +298,5 @@
         \bibliography{references}
         \addcontentsline{toc}{chapter}{References}
         \bibliographystyle{apalike2}
-        \include{endmatter/colophon}
     \end{spacing}
 }

@@ -5,74 +5,72 @@
 
 \newthought{In order to carry out the analysis herein,} it was necessary to gather
 play-by-play data with complete lineups. To do this, I collected play-by-play data
-from the past eleven complete NBA seasons, starting with the 2005-06 season and
+from the past eleven completed NBA seasons, starting with the 2005-06 season and
 ending with the 2015-16 season. The data was scraped from basketball-reference.com;
 this site was chosen for several reasons. First, the website makes its data freely
 available and is organized simply and effectively, simplifying the scraping process.
 The second and more important reason the site was chosen was because it assigns
 unique identifiers to each entity for which it has data, including players, teams,
-seasons, coaches, and referees.  Using these unique identifiers, it is very easy to
+seasons, coaches, and referees. Using these unique identifiers, it is very easy to
 cross-reference and join different data sources from the site; this makes complex
 analyses simpler because there it eliminates guesswork and ambiguities in data
 wrangling. For example, while other data sources may have ambiguities arising from
 players with similar names, Basketball Reference's unique identifiers make it easy
-to distinguish between, for example, Tim Hardaway Jr.  and Tim Hardaway Sr. or Isiah
+to distinguish between, for example, Tim Hardaway Jr. and Tim Hardaway Sr. or Isiah
 Thomas and Isaiah Thomas.
 
 The data scraping was done in Python using the sportsref library, an open-source
-Python library for scraping sports data from the Sports Reference family of websites
-\footnote{In addition to basketball-reference.com, this family of websites
-includes sports-reference.com, baseball-reference.com, and
-pro-football-reference.com.}.
-I am the creator and, as of this writing, the sole developer and maintainer of the
-library, which was created to make sports analytics easier for those who understand
-sports and basic data analysis but do not have the programming knowledge to scrape
-data themselves. The library is still in the early stages of development; its
-code can be found on GitHub
-\footnote{github.com/mdgoldberg/sportsref}.
+Python library for scraping sports data from Basketball Reference and its sister
+sites, which include Pro Football Reference and Baseball Reference, among others. I
+am the sole creator, developer, and maintainer of the library, which was
+created to make sports analytics easier for those who understand sports and basic
+data analysis but do not have the programming knowledge to scrape data themselves.
+The library is still in the early stages of development; its code can be found on
+GitHub (CITE).
 
-More specifically, the data used in this thesis was scraped from Basketball
-Reference's play-by-play section it has for virtually game since the beginning of
-the 2000-2001 NBA season \footnote{For example, see
-www.basketball-reference.com/boxscores/pbp/201604010GSW.html}. This page gives
-detailed text descriptions of each event throughout the game, but does not contain
-structured data to identify, for example, whether an event is a rebound or who the
-shooter is on a field goal attempt. Therefore, regular expressions were constructed
-for each type of event in the dataset in order to create structured data from these
-descriptions; altogether, there are about twenty different types of descriptions.
-The reason data prior to the 2005-06 season was not used is that these play-by-play
-logs became more detailed starting with the 2005-06 season.
+More specifically, the data used in this thesis was scraped from the play-by-play
+section that Basketball Reference provides for virtually game since the beginning of
+the 2000-2001 NBA season (TODO: image). This page gives detailed text descriptions
+of each event throughout the game, but does not contain structured data to identify,
+for example, whether an event is a rebound or who the shooter is on a field goal
+attempt. Therefore, regular expressions were constructed for each type of event in
+the dataset in order to create structured data from these descriptions; altogether,
+there are about twenty different types of events.
 
 Moreover, several issues exist in the raw data that required cleaning. Perhaps the
-most difficult problem with the raw data was that some events were ordered
+most difficult problem with the raw data is that some events were ordered
 incorrectly. Examples include rebounds being listed prior to their corresponding
 missed shots and inconsistencies surrounding when substitutions and timeouts occur
 during free throws; these problems were remedied by a complicated sorting scheme
-within each possession. Other, slightly simpler problems included tracking which
-team was on offense or defense at any given time and consolidating redundant
-substutitions in which a player would sub in and immediately sub out.
+within each possession so that events were listed in a logical order. Other,
+slightly simpler problems included tracking which team was on offense or defense at
+any given time and consolidating redundant substutitions in which a player would sub
+in and immediately sub out.
 
 Once the raw data was cleaned, additional features were added to the data. For
-instance, simple new features include the home and away teams' points scored on
-each event, which can be used to easily compute point differential for any
-subset of events. One very important and more complicated feature was
-identifying ``plays,'' a possession-like concept introduced by Maymin et al. In
-particular, the definition of a play is identical to the definition of a
-possession, except that an offensive rebound extends a possession but begins a
-new play. Distinguishing plays from possessions was important because it
-provides more context for the profile statistics described in section
-\ref{sec:profiles}, as each play allows another opportunity to log events such
-as field goal attempts, rebounds, assists, and personal fouls.  Therefore, when
-computing rate statistics for players, it is more revealing to use per-play
-statistics than per-possession statistics. Differentiating plays was done by
-labeling events that end a play with an indicator variable and computing the
-cumulative sum of these variables to create a play identification number for
-each event. Specifically, play-ending events include turnovers, field goal
-attempts on which fouls were not committed, non-technical free throws that are
-not succeeded by another free throw, and the end of each quarter or overtime
-period. Possessions were identified using a similar procedure; while plays are
-more indicative of play style for most of the profile statistics in section
-\ref{sec:profiles}, others require possession data.
+instance, simple new features include the home and away teams' points scored on each
+event, which can be used to easily compute point differential for any subset of
+events. One very important and more complicated feature was identifying ``plays,'' a
+possession-like concept introduced by Maymin et al (CITE PROPERLY). In particular,
+the definition of a play is identical to the definition of a possession, except that
+an offensive rebound extends a possession but begins a new play. Distinguishing
+plays from possessions was important because it provides more context for the
+profile statistics described in section \ref{sec:profiles}, as each play allows
+another opportunity to log events such as field goal attempts, rebounds, assists,
+and personal fouls. Therefore, when computing rate statistics for players, it is
+more revealing to use per-play statistics than per-possession statistics.
+Differentiating plays was done by labeling events that end a play with an indicator
+variable and computing the cumulative sum of these variables to create a play
+identification number for each event. Specifically, play-ending events include
+turnovers, field goal attempts on which fouls were not committed, free throws that
+are not succeeded by another free throw, and the end of each quarter or overtime
+period. Possessions were identified using a similar procedure; while plays are more
+indicative of play style for most of the profile statistics in section
+\ref{sec:profiles}, others (in particular, RAPM) require possession data. Moreover,
+throughout the analysis herein, technical fouls and technical free throws were
+discarded from the play-by-play data set, as they sometimes caused issues when
+identifying plays and possessions and are generally rare enough that they can be
+safely ignored for the sake of this analysis.
 
 Next, analyzing lineups requires data that indicates which players are on the court
 for any given event. While the data provided by basketball-reference.com does not
@@ -84,10 +82,10 @@ determine which players start each period, it was necessary to comb through each
 period and note which players are involved in events (including being substituted
 out) prior to being substituted in. When a player was never substituted out and was
 never involved in an event, the player can be determined by computing each player's
-minutes played based on the play-by-play data to his minutes played as listed in the
-box score. Once the starters of each period were determined, it is relatively
-straightforward to use substitution data to determine each team's lineup for any
-given event.
+minutes played based on the play-by-play data and comparing this value to his
+minutes played as listed in the box score. Once the starters of each period were
+determined, it is relatively straightforward to use substitution data to determine
+each team's lineup for any given event.
 
 % TODO: fix table below, pick better events
 
