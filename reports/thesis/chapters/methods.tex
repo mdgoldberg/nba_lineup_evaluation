@@ -31,7 +31,7 @@ or roster moves through trades or free agency. Therefore, in order to quantify a
 player's play style for season $t$, using statistics from within season $t$ is
 essential. However, it is nonsensical to use play-by-play data from season $t$ to
 construct player profiles if we are to use these player profiles to predict point
-outcomes in season $t$ because the puropose of the model from the perspective of a
+outcomes in season $t$ because the purpose of the model from the perspective of a
 coach is to accurately predict point differential prior to observing these outcomes.
 Therefore, one possible solution is to use play-by-play data from the first half of
 season $t$ to build player profiles and then to use these player profiles to predict
@@ -57,8 +57,8 @@ players; similarly, lineups can be evaluated by predicting the point differentia
 between the lineup and a lineup of replacement players. See chapter~\ref{ch:results}
 for such analyses.
 
-One issue with the setup so far is that a player that would otherwise be in the 360
-players by number of plays may be treated as a replacement player if they are
+One issue with the setup so far is that a player that would otherwise be in the top
+360 players by number of plays may be treated as a replacement player if they are
 injured for the majority of the first half of the season. To avoid this issue, data
 from season $t-1$ was included in addition to the first half of season $t$ in order
 to generate a player profile for season $t$. In order to give more weight to more
@@ -74,7 +74,9 @@ the denominator of the rate statistic, rather than weighting the rates from each
 season; this was done in order to avoid giving too much weight to either component
 of the blend due to a disparity in sample sizes. For example, a weighted version of
 free throw percentage for a player in season $t$ was computed as $(\text{FTM}_{t-1}
-+ 6\text{FTM}_t)/(\text{FTA}_{t-1} + 6\text{FTA}_t)$.
++ 6\text{FTM}_t)/(\text{FTA}_{t-1} + 6\text{FTA}_t)$, where FTA$_t$ is the number of
+free throws a player attempted in season $t$ and FTM$_t$ is the number of free
+throws a player made in season $t$.
 
 \section{Building Player Profiles Representative of Play Style}
 \label{sec:profiles}
@@ -119,9 +121,9 @@ year by subtracting the mean of a given profile feature within a given year and
 dividing by the standard deviation. To clarify, a player profile for season $t$
 includes data from season $t-1$ and the first half of season $t$; a weighted version
 of each rate statistic is computed first, and standardization only comes after all
-raw player profiles are computed. This has two justifications: first, it puts the
-data on the same scale; second, it controls for the changing landscape of the NBA by
-comparing players to other players within a given year, rather than comparing
+raw player profiles are computed. This has two justifications: first, it puts each
+feature on the same scale; second, it controls for the changing landscape of the NBA
+by comparing players to other players within a given year, rather than comparing
 player-seasons that took place in very different contexts.
 
 \begin{table}
@@ -350,9 +352,9 @@ course, a linear model, it does account for interactions between play styles to 
 extent due to the way the model is formulated. Because players are ordered by total
 RAPM, substituting one player for another is not as simple as the RAPM approach of
 adding the difference between the players' ratings; this is because a substitution
-could result in a different order after being sorted by RAPM than before, which
-would result in different predictors being matched with different coefficients. The
-final model was selected based on performance in cross-validation, as explained in
+could result in a different order after being sorted by RAPM, which would result in
+different predictors being matched with different coefficients. The final model was
+selected based on performance in cross-validation, as explained in
 section~\ref{sec:mod_sel}.
 
 \section{Model Selection}

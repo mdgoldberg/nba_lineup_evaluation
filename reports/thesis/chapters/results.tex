@@ -16,7 +16,7 @@ that often gives intuitive results and has few parameters to tune other than the
 number of clusters. Second, using inertia as the loss function for clustering
 assumes that clusters are convex and isotropic, which is a reasonable assumption for
 player types; in other words, the shapes of a cluster of players in player profile
-space should be roughly spherical, rather than elongated.
+space should be roughly spherical, rather than elongated or oddly-shaped.
 
 In order to apply $k$-means to the player profiles, I used player profile data from
 every season from 2006-07 to 2015-16, ignoring the ``replacement player'' category
@@ -36,8 +36,8 @@ are not drowned out by variance from the 25 offensive features. While these
 adjustments were ad-hoc, they yielded intuitive results; moreover, the fact that
 defensive and rebounding features are correlated with some offensive features
 ensures that some of this signal is encapsulated in the offensive features. For
-example, both rebounding features were heavily correlated with the proportion of ap
-layer's shots taken from within four feet of the basket, as was block rate;
+example, both rebounding features were heavily correlated with the proportion of a
+player's shots taken from within four feet of the basket, as was block rate;
 similarly, steal rate is correlated with a player's field goal percentage on corner
 three-point attempts.
 
@@ -140,24 +140,24 @@ assisted on their shots rather than creating their own shots off the dribble.
 Players in cluster 2 are capable of rebounding and protecting the rim, but are
 relatively unskilled offensively other than on shots within the paint; examples
 include Timofey Mozgov and Taj Gibson. The cluster mean for cluster 3 has a positive
-field goal percentage from every distance on the court and takes a decent number of
-shots; these are typically scorers who play on the wing, like Carmelo Anthony or
-Tobias Harris. The fourth cluster comprises players who facilitate their team's
-offense through assists, shoot well, and are very effective on defense by forcing
-steals and turnovers. These are players that tend to be point guards like Chris Paul
-and Rajon Rondo, but they can also come from other positions; for example, Paul
-George and Kawhi Leonard belong to this cluster. Cluster 5 contains skilled
-offensive big men who are able to make mid-range shots and stretch the floor, such
-as Kevin Love or Tim Duncan. Members of cluster 6 tend to be very good facilitators,
-as they average the highest rate of assists per teammate field goal made, while also
-being capable shooters and subpar defenders; examples include Tony Parker, Isaiah
-Thomas, and Kyrie Irving. Cluster 7 contains bigger wings and big men who are able
-to defend at a high level; the cluster includes Ersan Ilyasova and P.J.\ Tucker.
-Finally, cluster 8 mostly contains elite rebounders and rim protectors; these are
-the stereotypical centers, such as Dwight Howard and DeAndre Jordan. Understanding
-these clusters can be helpful in interpreting some of the results below, where
-clusters allow an easy way to distill a player's profile into a single player type;
-a summary of the interpretation of these clusters is given in
+field goal percentage from every distance on the court and takes an above average
+number of shots per play; these are typically scorers who play on the wing, like
+Carmelo Anthony or Tobias Harris. The fourth cluster comprises players who
+facilitate their team's offense through assists, shoot well, and are very effective
+on defense by forcing steals and turnovers. These are players that tend to be point
+guards like Chris Paul and Rajon Rondo, but they can also come from other positions;
+for example, Paul George and Kawhi Leonard belong to this cluster. Cluster 5
+contains skilled offensive big men who are able to make mid-range shots and stretch
+the floor, such as Kevin Love or Tim Duncan. Members of cluster 6 tend to be very
+good facilitators, as they average the highest rate of assists per teammate field
+goal made, while also being capable shooters and subpar defenders; examples include
+Tony Parker, Isaiah Thomas, and Kyrie Irving. Cluster 7 contains bigger wings and
+big men who are able to defend at a high level; the cluster includes Ersan Ilyasova
+and P.J.\ Tucker.  Finally, cluster 8 mostly contains elite rebounders and rim
+protectors; these are the stereotypical centers, such as Dwight Howard and DeAndre
+Jordan. Understanding these clusters can be helpful in interpreting some of the
+results below, where clusters allow an easy way to distill a player's profile into a
+single player type; a summary of the interpretation of these clusters is given in
 table~\ref{tab:clust_interp}.
 
 \begin{table}
@@ -184,9 +184,9 @@ table~\ref{tab:clust_interp}.
 
 \section{Cross-Validation Results}
 
-As explained in section~\ref{sec:mod_sel}, cross-validation was done using three
-randomly selected seasons on each run; many different cross-validation runs were
-done in order to tune model hyperparameters; the results are summarized in
+As explained in section~\ref{sec:mod_sel}, cross-validation was performed using data
+from the 2011-12 season through the 2013-14 season; many different cross-validation
+runs were done in order to tune model hyperparameters; the results are summarized in
 table~\ref{tab:cv_results}.
 
 \begin{table}
@@ -223,7 +223,7 @@ manifold geometry known to exist in the data. As noted in section~\ref{sec:regre
 the linear regression model does encapsulate interactions between players, to an
 extent; this is because the players are sorted in order of total RAPM, so unlike the
 baseline RAPM model discussed in the introduction and in section~\ref{sec:baseline},
-substituting player 1 for player 2 is not as simple as adding one player 1's ratings
+substituting player 1 for player 2 is not as simple as adding player 1's ratings
 and subtracting player 2's ratings because the substitution can result in a
 shuffling of the order of the players in the regression, which in turn means that a
 player's feature values may be matched with different coefficients if his position
@@ -411,9 +411,9 @@ above-average assist rates. This suggests that, when playing with replacement-le
 players, having an elite point guard is critical, presumably because they are able
 to elevate the level of their teammates. Indeed, inspecting these players' player
 profiles shows that many of them have some of the lowest rates of being assisted on
-2-point field goals in the league; this typically means that they are able to score
-on their own and that they deliver a large portion of their team's assists. The
-only players in the top fifteen who are not in one of the two clusters are Kevin
+two-point field goals in the league; this typically means that they are able to
+score on their own and that they deliver a large portion of their team's assists.
+The only players in the top fifteen who are not in one of the two clusters are Kevin
 Durant, who is perhaps the best pure scorer in the NBA, Draymond Green, whose
 combination of offensive and defensive prowess is virtually unmatched, and Klay
 Thompson, who is one of the best pure shooters to ever play in the NBA.
@@ -488,13 +488,12 @@ replacement players; this lineup gained notoriety during the 2015-16 season as i
 became the Warriors' third most used lineup as it played 173 minutes for a
 staggering +44.4 net points per 100 possessions, a couple points higher than the
 player profile model's estimate against replacement-level players \cite{Ringer,
-BKRef}.
-After this lineup follow several Warriors lineups, with a smattering of Thunder,
-Clippers, and Cavaliers lineups rounding out the top 15. What is more interesting
-about these ratings, however, is the correlation between successful lineups and
-lineup composition in terms of cluster types. The majority of the highly rated
-lineups contain at least one three-point specialist from cluster 1, and in many
-cases two such specialists. The only lineups that do not contain a three-point
+BKRef}.  After this lineup follow several other Warriors lineups, with a smattering
+of Thunder, Clippers, and Cavaliers lineups rounding out the top 15. What is more
+interesting about these ratings, however, is the correlation between successful
+lineups and lineup composition in terms of cluster types. The majority of the highly
+rated lineups contain at least one three-point specialist from cluster 1, and in
+many cases two such specialists. The only lineups that do not contain a three-point
 specialist are the two Thunder lineups; however, Kevin Durant is an exception in
 cluster 3 in that he is an excellent three-point shooter, despite the cluster mean.
 This demonstrates the importance of having players who are threats from beyond the

@@ -8,7 +8,7 @@ from the past eleven completed NBA seasons, starting with the 2005-06 season and
 ending with the 2015-16 season. The data was scraped from \citet{BKRef}; this site
 was chosen for several reasons. First, the website makes its data freely available
 and is organized simply and effectively, simplifying the scraping process.  The
-second and more important reason the site was chosen was because it assigns unique
+second and more important reason the site was chosen is because it assigns unique
 identifiers to each entity for which it has data, including players, teams, seasons,
 coaches, and referees. Using these unique identifiers, it is very easy to
 cross-reference and join different data sources from the site; this makes complex
@@ -28,13 +28,13 @@ The library is still in the early stages of development; its code can be found o
 GitHub \cite{Sportsref}.
 
 More specifically, the data used in this thesis was scraped from the play-by-play
-section that Basketball Reference provides for virtually game since the beginning of
-the 2000-2001 NBA season. For an example of what this looks like, see
-figure~\ref{fig:bkref_pbp}. This page gives detailed text descriptions
-of each event throughout the game, but does not contain structured data to identify,
-for example, whether an event is a rebound or who the shooter is on a field goal
-attempt. Therefore, regular expressions were constructed for each type of event in
-the dataset in order to create structured data from these descriptions; altogether,
+section that Basketball Reference provides for virtually every game since the
+beginning of the 2000-2001 NBA season. For an example of what this looks like, see
+figure~\ref{fig:bkref_pbp}. This page gives detailed text descriptions of each event
+throughout the game, but does not contain structured data to identify, for example,
+whether an event is a rebound or who the shooter is on a field goal attempt.
+Therefore, regular expressions were constructed for each type of event in the
+dataset in order to create structured data from these descriptions; altogether,
 there are about twenty different types of events.
 
 \begin{figure}
@@ -59,7 +59,7 @@ Once the raw data was cleaned, additional features were added to the data. For
 instance, simple new features include the home and away teams' points scored on each
 event, which can be used to easily compute point differential for any subset of
 events. One very important and more complicated feature was identifying ``plays,'' a
-possession-like concept introduced by \citeauthor{Maymin}. In particular, the
+possession-like concept introduced by \citeauthor{Maymin} In particular, the
 definition of a play is identical to the definition of a possession, except that an
 offensive rebound extends a possession but begins a new play. Distinguishing plays
 from possessions was important because it provides more context for the profile
@@ -88,12 +88,12 @@ only logged for substitutions in the middle of a quarter or overtime period;
 substitutions between periods were not indicated in the raw data. Therefore, to
 determine which players start each period, it was necessary to comb through each
 period and note which players are involved in events (including being substituted
-out) prior to being substituted in. When a player was never substituted out and was
-never involved in an event, the player can be determined by computing each player's
-minutes played based on the play-by-play data and comparing this value to his
-minutes played as listed in the box score. Once the starters of each period were
-determined, it is relatively straightforward to use substitution data to determine
-each team's lineup for any given event.
+out) prior to being substituted in. When a player who started a period was never
+substituted out and was never involved in an event, the player can be determined by
+computing each player's minutes played based on the play-by-play data and comparing
+this value to his minutes played as listed in the box score. Once the starters of
+each period were determined, it is relatively straightforward to use substitution
+data to determine each team's lineup for any given event.
 
 \begin{table}
     \centering
@@ -132,34 +132,19 @@ each team's lineup for any given event.
 It is important to note that Basketball Reference's play-by-play is not official,
 and in some cases there was missing data. For the seasons being used here,
 play-by-play was available for every game, but there were errors in parsing the raw
-data in six games out of the 18,086 games ($0.033\%$) played during the
-fifteen-season span; all of these errors were caused by inconsistent or insufficient
+data in four games out of the 13,289 games ($0.03\%$) played during the
+eleven-season span; all of these errors were caused by inconsistent or insufficient
 substitution data in the play-by-play logs, resulting in an inability to determine
 the players on the court for at least one event in the play-by-play. These games
 were simply ignored for the sake of this analysis. Moreover, in order to ensure that
 the data was by-and-large accurate, each player's raw plus/minus was calculated in
 each remaining game based on the lineup data inferred from the play-by-play and
 compared to the raw plus/minus listed in the box score summary provided by
-Basketball Reference. For 92.78\% of the games for which there is complete data,
+Basketball Reference. For 91.6\% of the games for which there is complete data,
 there was no difference between any player's computed plus/minus and his official
-plus/minus. In 99.55\% of the games, there is no absolute difference between the
-plus/minus figures that exceeds two points. Finally, in 99.94\% of the games, the
+plus/minus. In 99.4\% of the games, there is no absolute difference between the
+plus/minus figures that exceeds two points. Finally, in 99.91\% of the games, the
 sum of all players' computed plus/minus was equal to zero, which is a necessary
 condition of correct raw plus/minus data within a game. These figures suggest that
 the vast majority of the data is correct and can be trusted with reasonably high
 confidence.
-
-% \begin{figure}
-% \includegraphics[width=\textwidth]{figures/fig1}
-% \caption[Short figure name.]{This is a figure that floats inline and here is its caption.
-% \label{fig:myInlineFigure}}
-% \end{figure}
-
-%% Requires fltpage2 package
-%%
-% \begin{FPfigure}
-% \includegraphics[width=\textwidth]{figures/fullpage}
-% \caption[Short figure name.]{This is a full page figure using the FPfigure command. It takes up the whole page and the caption appears on the preceding page. Its useful for large figures. Harvard's rules about full page figures are tricky, but you don't have to worry about it because we took care of it for you. For example, the full figure is supposed to have a title in the same style as the caption but without the actual caption. The caption is supposed to appear alone on the preceding page with no other text. You do't have to worry about any of that. We have modified the fltpage package to make it work. This is a lengthy caption and it clearly would not fit on the same page as the figure. Note that you should only use the FPfigure command in instances where the figure really is too large. If the figure is small enough to fit by the caption than it does not produce the desired effect. Good luck with your thesis. I have to keep writing this to make the caption really long. LaTex is a lot of fun. You will enjoy working with it. Good luck on your post doctoral life! I am looking forward to mine. \label{fig:myFullPageFigure}}
-% \end{FPfigure}
-% \afterpage{\clearpage}
-
