@@ -25,7 +25,7 @@ if __name__ == '__main__':
     profiles_scaled = profile_df.groupby(level=1).transform(
         lambda z: (z - z.mean()) / z.std()
     )
-    profs_kmeans = pd.DataFrame(profiles_scaled)
+    profs_kmeans = profiles_scaled.copy()
 
     def_cols = ['blk_pct', 'stl_pct', 'pf_pct', 'opp_to_pct', 'drapm']
     reb_cols = ['orb_pct', 'drb_pct']
@@ -62,4 +62,4 @@ if __name__ == '__main__':
     means.columns.name = 'Feature'
     means = means.T.applymap(lambda x: round(x, 2))
 
-    visualize.write_table(means, 'cluster_means.txt')
+    visualize.write_table(means, 'cluster_means.txt', column_format='c'*8)
