@@ -46,7 +46,7 @@ def process_boxscore_id(boxscore_id):
 
 def fetch_pbp_data_year(year):
     season = nba.Season(year)
-    boxscore_ids = season.schedule().boxscore_id.values
+    boxscore_ids = filter(None, season.schedule().boxscore_id.values)
     bsids_bag = db.from_sequence(boxscore_ids, npartitions=16)
     dfs_bag = bsids_bag.map(process_boxscore_id)
     dfs = dfs_bag.compute()
